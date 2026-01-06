@@ -1,1 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FNF JSON Chart Editor (Audio)</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    gap: 12px;
+    background: #111;
+    color: #eee;
+    margin: 0;
+    padding: 10px;
+  }
+  textarea {
+    width: 420px;
+    height: 90vh;
+    background: #1e1e1e;
+    color: #0f0;
+    border: 1px solid #444;
+    padding: 8px;
+    font-family: monospace;
+    font-size: 12px;
+  }
+  .right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  canvas {
+    background: #000;
+    border: 1px solid #444;
+  }
+  button, input[type="file"] {
+    background: #222;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #333;
+  }
+  .row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+</style>
+</head>
+<body>
 
+<textarea id="jsonInput"></textarea>
+
+<div class="right">
+  <canvas id="chart" width="900" height="400"></canvas>
+
+  <div class="row">
+    <input type="file" accept=".ogg" onchange="loadAudio(this)">
+    <button onclick="playAudio()">Play</button>
+    <button onclick="pauseAudio()">Pause</button>
+    <button onclick="stopAudio()">Stop</button>
+  </div>
+
+  <div class="row">
+    <button onclick="seekTime(-100)">-100ms</button>
+    <button onclick="seekTime(100)">+100ms</button>
+    <span id="timeLabel">Time: 0 ms</span>
+  </div>
+
+  <strong>Player (0–3)</strong>
+  <div class="row">
+    <button onclick="addNote(0)">⬅</button>
+    <button onclick="addNote(1)">⬇</button>
+    <button onclick="addNote(2)">⬆</button>
+    <button onclick="addNote(3)">➡</button>
+  </div>
+
+  <strong>Opponent (4–7)</strong>
+  <div class="row">
+    <button onclick="addNote(4)">⬅</button>
+    <button onclick="addNote(5)">⬇</button>
+    <button onclick="addNote(6)">⬆</button>
+    <button onclick="addNote(7)">➡</button>
+  </div>
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+const jsonInput = document.getElementById("jsonInput");
+const canvas = document.getElementById("chart");
+const ctx = canvas.getContext("2d");
+const timeLabel = document.getElementById("timeLabel");
+const audio = document.getElementById("audio");
+
+let chartData;
+let currentTime = 0;
+let playing = false;
+
+// Default JSON
+jsonInput.value = JSON.stringify({
+  version: "2.0.0",
+  scrollSpeed: { easy: 1.8, normal: 2, hard: 2.2 },
+  events: [],
+  notes: { normal: [] },
+  generatedBy: "Friday Night Funkin' - v0.8.0"
+}, null, 2);
+
+function loadAudio(input) {
+  const file = input.files[0];
+  if (!file) return;
+  audio.src = URL.createObjectURL(file);
+}
+
+function playAudio() {
+  audio.play();
+  playing = true;
+}
+
+function pauseAudio() {
+  audio.pause();
+  playing = false;
+}
+
+function stopAudio() {
+  audio.pause();
+  audio.currentTime = 0;
+  currentTime = 0;
+  playing = false;
+  updateTime();
+  drawChart();
+}
+
+function seekTime(deltaMs) {
+  currentTime = Math.max(0, currentTime + deltaMs);
+  audio.currentTime = currentTime / 1000;
+  updateTime();
+  drawChart();
+}
+
+audio.addEventListener("timeupdate", () => {
+  if (!playing) return;
+  currentTime = Math.floor(audio.currentTime * 1000);
+  updateTime();
+  drawChart();
+});
+
+function updateTime() {
+  timeLabel.textContent = `Time: ${currentTime} ms`;
+}
+
+function reloadChart() {
+  try {
+    chartData = JSON.parse(jsonInput.value);
+    drawChart();
+  } catch {
+    alert("Invalid JSON");
+  }
+}
+
+function addNote(lane) {
+  if (!chartData.notes.normal) chartData.notes.normal = [];
+
+  chartData.notes.normal.push({
+    t: currentTime,
+    d: lane,
+    l: 0,
+    p: []
+  });
+
+  chartData.notes.normal.sort((a, b) => a.t - b.t);
+  jsonInput.value = JSON.stringify(chartData, null, 2);
+  drawChart();
+}
+
+function drawChart() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const notes = chartData.notes?.normal || [];
+  const visibleStart = currentTime - 2000;
+  const visibleEnd = currentTime + 4000;
+
+  // Lanes
+  for (let i = 0; i < 8; i++) {
+    ctx.strokeStyle = "#333";
+    ctx.beginPath();
+    ctx.moveTo(i * 110 + 50, 0);
+    ctx.lineTo(i * 110 + 50, canvas.height);
+    ctx.stroke();
+  }
+
+  // Time center line
+  ctx.strokeStyle = "red";
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height / 2);
+  ctx.lineTo(canvas.width, canvas.height / 2);
+  ctx.stroke();
+
+  for (const note of notes) {
+    if (note.t < visibleStart || note.t > visibleEnd) continue;
+
+    const x = note.d * 110 + 50;
+    const y = canvas.height / 2 - (note.t - currentTime) * 0.05;
+
+    ctx.fillStyle = note.d <= 3 ? "#00aaff" : "#ff5555";
+    ctx.fillRect(x - 12, y - 12, 24, 24);
+  }
+}
+
+reloadChart();
+</script>
+
+</body>
+</html>
