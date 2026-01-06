@@ -207,7 +207,7 @@ audio.addEventListener("timeupdate",()=>{
 
 // ---------------- NOTES ----------------
 function addNote(lane) {
-  chartData.notes.normal.push({ t: currentTime, d: lane, l: 0 });
+  chartData.notes.normal.push({ t: currentTime, d: lane, l: 0, p:[] });
   chartData.notes.normal.sort((a,b)=>a.t-b.t);
   syncTextarea();
   drawChart();
