@@ -71,6 +71,11 @@
     <span id="timeLabel">Time: 0 ms</span>
   </div>
 
+  <div class="row">
+    <button onclick="saveFromJSON()">💾 Save</button>
+    <button onclick="exportJSON()">📤 Export JSON</button>
+  </div>
+
   <strong>Player (0–3)</strong>
   <div class="row">
     <button onclick="addNote(0)">⬅</button>
@@ -102,8 +107,7 @@ let currentTime = 0;
 let playing = false;
 
 // Default JSON
-jsonInput.value = JSON.stringify(
-  {
+chartData = {
   "version": "2.0.0",
   "scrollSpeed": {
     "easy": 1.8,
@@ -117,7 +121,43 @@ jsonInput.value = JSON.stringify(
     "hard": []
   },
   "generatedBy": "Friday Night Funkin' - v0.8.0"
-}, null, 2);
+};
+
+jsonInput.value = JSON.stringify(chartData, null, 2);
+
+function syncTextarea() {
+  jsonInput.value = JSON.stringify(chartData, null, 2);
+}
+
+function saveFromJSON() {
+  try {
+    const parsed = JSON.parse(jsonInput.value);
+
+    if (!parsed.notes || !parsed.notes.normal) {
+      alert("JSON must contain notes.normal");
+      return;
+    }
+
+    chartData = parsed;
+    syncTextarea();
+    drawChart();
+  } catch (e) {
+    alert("Invalid JSON");
+  }
+}
+
+function exportJSON() {
+  const blob = new Blob(
+    [JSON.stringify(chartData, null, 2)],
+    { type: "application/json" }
+  );
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "chart.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 function loadAudio(input) {
   const file = input.files[0];
@@ -162,15 +202,6 @@ function updateTime() {
   timeLabel.textContent = `Time: ${currentTime} ms`;
 }
 
-function reloadChart() {
-  try {
-    chartData = JSON.parse(jsonInput.value);
-    drawChart();
-  } catch {
-    alert("Invalid JSON");
-  }
-}
-
 function addNote(lane) {
   if (!chartData.notes.normal) chartData.notes.normal = [];
 
@@ -182,7 +213,7 @@ function addNote(lane) {
   });
 
   chartData.notes.normal.sort((a, b) => a.t - b.t);
-  jsonInput.value = JSON.stringify(chartData, null, 2);
+  syncTextarea();
   drawChart();
 }
 
@@ -193,7 +224,6 @@ function drawChart() {
   const visibleStart = currentTime - 2000;
   const visibleEnd = currentTime + 4000;
 
-  // Lanes
   for (let i = 0; i < 8; i++) {
     ctx.strokeStyle = "#333";
     ctx.beginPath();
@@ -202,7 +232,6 @@ function drawChart() {
     ctx.stroke();
   }
 
-  // Time center line
   ctx.strokeStyle = "red";
   ctx.beginPath();
   ctx.moveTo(0, canvas.height / 2);
@@ -220,7 +249,7 @@ function drawChart() {
   }
 }
 
-reloadChart();
+drawChart();
 </script>
 
 </body>
