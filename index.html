@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>FNF JSON Chart Editor (Audio)</title>
+<title>FNF JSON Chart Editor (Advanced)</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -49,6 +49,10 @@
     flex-wrap: wrap;
     align-items: center;
   }
+  .previewWrap {
+    display: flex;
+    gap: 8px;
+  }
 </style>
 </head>
 <body>
@@ -59,6 +63,7 @@
   <canvas id="chart" width="900" height="400"></canvas>
 
   <div class="row">
+    <input type="file" accept=".json" onchange="importJSON(this)">
     <input type="file" accept=".ogg" onchange="loadAudio(this)">
     <button onclick="playAudio()">Play</button>
     <button onclick="pauseAudio()">Pause</button>
@@ -91,6 +96,22 @@
     <button onclick="addNote(6)">⬆</button>
     <button onclick="addNote(7)">➡</button>
   </div>
+
+  <strong>Sprite Previews (PNG + XML)</strong>
+  <div class="previewWrap">
+    <div>
+      <div>Player</div>
+      <input type="file" accept=".png" onchange="loadSprite(event,'player')">
+      <input type="file" accept=".xml" onchange="loadXML(event,'player')">
+      <canvas id="playerPreview" width="150" height="150"></canvas>
+    </div>
+    <div>
+      <div>Opponent</div>
+      <input type="file" accept=".png" onchange="loadSprite(event,'opponent')">
+      <input type="file" accept=".xml" onchange="loadXML(event,'opponent')">
+      <canvas id="opponentPreview" width="150" height="150"></canvas>
+    </div>
+  </div>
 </div>
 
 <audio id="audio"></audio>
@@ -106,151 +127,156 @@ let chartData;
 let currentTime = 0;
 let playing = false;
 
-// Default JSON
-chartData = {
-  "version": "2.0.0",
-  "scrollSpeed": {
-    "easy": 1.8,
-    "normal": 2,
-    "hard": 2.2
-  },
-  "events": [],
-  "notes": {
-    "easy": [],
-    "normal": [],
-    "hard": []
-  },
-  "generatedBy": "Friday Night Funkin' - v0.8.0"
-};
+const laneColors = [
+  "#ff3333", // red
+  "#33ff33", // green
+  "#3399ff", // blue
+  "#bb55ff"  // purple
+];
 
+// ---------------- DEFAULT JSON ----------------
+chartData = {
+  version: "2.0.0",
+  notes: { normal: [] }
+};
 jsonInput.value = JSON.stringify(chartData, null, 2);
 
+// ---------------- JSON ----------------
 function syncTextarea() {
   jsonInput.value = JSON.stringify(chartData, null, 2);
 }
 
 function saveFromJSON() {
   try {
-    const parsed = JSON.parse(jsonInput.value);
-
-    if (!parsed.notes || !parsed.notes.normal) {
-      alert("JSON must contain notes.normal");
-      return;
-    }
-
-    chartData = parsed;
-    syncTextarea();
+    chartData = JSON.parse(jsonInput.value);
     drawChart();
-  } catch (e) {
+  } catch {
     alert("Invalid JSON");
   }
 }
 
 function exportJSON() {
-  const blob = new Blob(
-    [JSON.stringify(chartData, null, 2)],
-    { type: "application/json" }
-  );
-
+  const blob = new Blob([JSON.stringify(chartData, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "chart.json";
   a.click();
-  URL.revokeObjectURL(a.href);
 }
 
-function loadAudio(input) {
+function importJSON(input) {
   const file = input.files[0];
   if (!file) return;
-  audio.src = URL.createObjectURL(file);
+  const reader = new FileReader();
+  reader.onload = e => {
+    chartData = JSON.parse(e.target.result);
+    syncTextarea();
+    drawChart();
+  };
+  reader.readAsText(file);
 }
 
-function playAudio() {
-  audio.play();
-  playing = true;
+// ---------------- AUDIO ----------------
+function loadAudio(input) {
+  audio.src = URL.createObjectURL(input.files[0]);
 }
-
-function pauseAudio() {
-  audio.pause();
-  playing = false;
-}
-
-function stopAudio() {
+function playAudio(){ audio.play(); playing = true; }
+function pauseAudio(){ audio.pause(); playing = false; }
+function stopAudio(){
   audio.pause();
   audio.currentTime = 0;
   currentTime = 0;
-  playing = false;
-  updateTime();
   drawChart();
 }
-
-function seekTime(deltaMs) {
-  currentTime = Math.max(0, currentTime + deltaMs);
+function seekTime(ms){
+  currentTime = Math.max(0, currentTime + ms);
   audio.currentTime = currentTime / 1000;
-  updateTime();
-  drawChart();
 }
-
-audio.addEventListener("timeupdate", () => {
-  if (!playing) return;
-  currentTime = Math.floor(audio.currentTime * 1000);
-  updateTime();
+audio.addEventListener("timeupdate",()=>{
+  if(!playing) return;
+  currentTime = audio.currentTime * 1000;
+  timeLabel.textContent = `Time: ${Math.floor(currentTime)} ms`;
   drawChart();
 });
 
-function updateTime() {
-  timeLabel.textContent = `Time: ${currentTime} ms`;
-}
-
+// ---------------- NOTES ----------------
 function addNote(lane) {
-  if (!chartData.notes.normal) chartData.notes.normal = [];
-
-  chartData.notes.normal.push({
-    t: currentTime,
-    d: lane,
-    l: 0,
-    p: []
-  });
-
-  chartData.notes.normal.sort((a, b) => a.t - b.t);
+  chartData.notes.normal.push({ t: currentTime, d: lane, l: 0 });
+  chartData.notes.normal.sort((a,b)=>a.t-b.t);
   syncTextarea();
   drawChart();
 }
 
+// ---------------- DRAW ----------------
 function drawChart() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  const notes = chartData.notes?.normal || [];
-  const visibleStart = currentTime - 2000;
-  const visibleEnd = currentTime + 4000;
+  const notes = chartData.notes.normal;
+  const centerY = canvas.height / 2;
 
-  for (let i = 0; i < 8; i++) {
-    ctx.strokeStyle = "#333";
+  for(let i=0;i<8;i++){
+    ctx.strokeStyle="#333";
     ctx.beginPath();
-    ctx.moveTo(i * 110 + 50, 0);
-    ctx.lineTo(i * 110 + 50, canvas.height);
+    ctx.moveTo(i*110+50,0);
+    ctx.lineTo(i*110+50,canvas.height);
     ctx.stroke();
   }
 
-  ctx.strokeStyle = "red";
-  ctx.beginPath();
-  ctx.moveTo(0, canvas.height / 2);
-  ctx.lineTo(canvas.width, canvas.height / 2);
-  ctx.stroke();
+  for(const n of notes){
+    const x = n.d*110+50;
+    const y = centerY - (n.t-currentTime)*0.05;
+    if(y<-50||y>canvas.height+50) continue;
 
-  for (const note of notes) {
-    if (note.t < visibleStart || note.t > visibleEnd) continue;
+    const baseColor = laneColors[n.d % 4];
 
-    const x = note.d * 110 + 50;
-    const y = canvas.height / 2 - (note.t - currentTime) * 0.05;
+    // HOLD TRAIL
+    if(n.l > 0){
+      ctx.globalAlpha = 0.6;
+      ctx.fillStyle = baseColor;
+      ctx.fillRect(x-6, y, 12, n.l*0.05);
+      ctx.globalAlpha = 1;
+    }
 
-    ctx.fillStyle = note.d <= 3 ? "#00aaff" : "#ff5555";
-    ctx.fillRect(x - 12, y - 12, 24, 24);
+    if(n.d <= 3){
+      ctx.fillStyle = baseColor;
+      ctx.fillRect(x-12,y-12,24,24);
+    } else {
+      ctx.strokeStyle = baseColor;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x-12,y-12,24,24);
+    }
   }
 }
 
+// ---------------- SPRITE PREVIEW ----------------
+const sprites = {
+  player:{ img:null, xml:null },
+  opponent:{ img:null, xml:null }
+};
+
+function loadSprite(e,type){
+  const img = new Image();
+  img.onload=()=>sprites[type].img=img;
+  img.src=URL.createObjectURL(e.target.files[0]);
+}
+
+function loadXML(e,type){
+  const r=new FileReader();
+  r.onload=ev=>sprites[type].xml=ev.target.result;
+  r.readAsText(e.target.files[0]);
+}
+
+setInterval(()=>{
+  ["player","opponent"].forEach(type=>{
+    const c=document.getElementById(type+"Preview");
+    const ctxp=c.getContext("2d");
+    ctxp.clearRect(0,0,c.width,c.height);
+    if(sprites[type].img){
+      ctxp.drawImage(sprites[type].img,0,0,64,64,43,43,64,64);
+    }
+  });
+},200);
+
 drawChart();
 </script>
-
 </body>
 </html>
