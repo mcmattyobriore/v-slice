@@ -102,12 +102,21 @@ let currentTime = 0;
 let playing = false;
 
 // Default JSON
-jsonInput.value = JSON.stringify({
-  version: "2.0.0",
-  scrollSpeed: { easy: 1.8, normal: 2, hard: 2.2 },
-  events: [],
-  notes: { normal: [] },
-  generatedBy: "Friday Night Funkin' - v0.8.0"
+jsonInput.value = JSON.stringify(
+  {
+  "version": "2.0.0",
+  "scrollSpeed": {
+    "easy": 1.8,
+    "normal": 2,
+    "hard": 2.2
+  },
+  "events": [],
+  "notes": {
+    "easy": [],
+    "normal": [],
+    "hard": []
+  },
+  "generatedBy": "Friday Night Funkin' - v0.8.0"
 }, null, 2);
 
 function loadAudio(input) {
