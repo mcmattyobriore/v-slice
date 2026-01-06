@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>VslicR5 - Mobile Edition</title>
 <link rel="shortcut icon" type="image/png" href="favicon.png">
+
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -46,9 +47,7 @@
     cursor: pointer;
     border-radius: 4px;
   }
-  button:active {
-    background: #444;
-  }
+  button:active { background: #444; }
   .row {
     display: flex;
     gap: 6px;
@@ -56,7 +55,6 @@
     align-items: center;
   }
 
-  /* MOBILE CONTROLS STYLING */
   .mobile-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -102,13 +100,16 @@
   }
 </style>
 </head>
+
 <body>
 <textarea id="jsonInput" spellcheck="false"></textarea>
+
 <div class="right">
   <canvas id="chart" width="900" height="400"></canvas>
 
   <div class="row">
     <input type="file" accept=".json" onchange="importJSON(this)">
+    <input type="file" accept=".ogg,.wav,.mp3,audio/*" onchange="importAudio(this)">
     <button onclick="playAudio()">▶ Play</button>
     <button onclick="pauseAudio()">⏸ Pause</button>
     <button onclick="stopAudio()">⏹ Stop</button>
@@ -120,7 +121,6 @@
     <span id="timeLabel">Time: 0 ms</span>
   </div>
 
-  <!-- MOBILE INPUT SECTION -->
   <div class="mobile-grid">
     <div class="btn-group">
       <small>OPPONENT (WASD)</small>
@@ -163,13 +163,13 @@ let playing = false;
 
 const laneColors = ["#ff3333", "#33ff33", "#3399ff", "#bb55ff"];
 
-// ---------------- KEYBOARD INPUT ----------------
-window.addEventListener("keydown", (e) => {
+// Keyboard input
+window.addEventListener("keydown", e => {
   if (document.activeElement === jsonInput) return;
   switch(e.key.toLowerCase()) {
-    case "arrowleft":  addNote(0); break;
-    case "arrowdown":  addNote(1); break;
-    case "arrowup":    addNote(2); break;
+    case "arrowleft": addNote(0); break;
+    case "arrowdown": addNote(1); break;
+    case "arrowup": addNote(2); break;
     case "arrowright": addNote(3); break;
     case "a": addNote(4); break;
     case "s": addNote(5); break;
@@ -179,11 +179,11 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-// ---------------- DEFAULT JSON ----------------
+// Default chart
 chartData = {
   version: "2.0.0",
-  notes: { "normal": [] },
-  "generatedBy": "'VslicR5' - FNF v0.8.0"
+  notes: { normal: [] },
+  generatedBy: "'VslicR5' - FNF v0.8.0"
 };
 jsonInput.value = JSON.stringify(chartData, null, 2);
 
@@ -191,31 +191,27 @@ function syncTextarea() {
   jsonInput.value = JSON.stringify(chartData, null, 2);
 }
 
-function saveFromJSON() {
-  try {
-    chartData = JSON.parse(jsonInput.value);
-    drawChart();
-  } catch { alert("Invalid JSON"); }
-}
-
-function exportJSON() {
-  const blob = new Blob([JSON.stringify(chartData, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "chart.json";
-  a.click();
-}
-
 function importJSON(input) {
   const file = input.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
+  const r = new FileReader();
+  r.onload = e => {
     chartData = JSON.parse(e.target.result);
     syncTextarea();
     drawChart();
   };
-  reader.readAsText(file);
+  r.readAsText(file);
+}
+
+function importAudio(input) {
+  const file = input.files[0];
+  if (!file) return;
+  audio.src = URL.createObjectURL(file);
+  audio.load();
+  currentTime = 0;
+  playing = false;
+  timeLabel.textContent = "Time: 0 ms";
+  drawChart();
 }
 
 function playAudio(){ audio.play(); playing = true; }
@@ -224,24 +220,31 @@ function stopAudio(){
   audio.pause();
   audio.currentTime = 0;
   currentTime = 0;
+  playing = false;
   drawChart();
 }
+
 function seekTime(ms){
   currentTime = Math.max(0, currentTime + ms);
   audio.currentTime = currentTime / 1000;
   timeLabel.textContent = `Time: ${Math.floor(currentTime)} ms`;
   drawChart();
 }
-audio.addEventListener("timeupdate",()=>{
-  if(!playing) return;
+
+audio.addEventListener("timeupdate", () => {
+  if (!playing) return;
   currentTime = audio.currentTime * 1000;
   timeLabel.textContent = `Time: ${Math.floor(currentTime)} ms`;
   drawChart();
 });
 
 function addNote(lane) {
-  if(!chartData.notes.normal) chartData.notes.normal = [];
-  chartData.notes.normal.push({ t: Math.floor(currentTime), d: lane, l: 0, p:[] });
+  chartData.notes.normal.push({
+    t: Math.floor(currentTime),
+    d: lane,
+    l: 0,
+    p: []
+  });
   chartData.notes.normal.sort((a,b)=>a.t-b.t);
   syncTextarea();
   drawChart();
@@ -249,11 +252,9 @@ function addNote(lane) {
 
 function drawChart() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  const notes = chartData.notes.normal || [];
   const centerY = canvas.height / 2;
 
-  // Draw Lanes
-  for(let i=0;i<8;i++){
+  for (let i=0;i<8;i++) {
     ctx.strokeStyle="#333";
     ctx.beginPath();
     ctx.moveTo(i*110+50,0);
@@ -261,18 +262,17 @@ function drawChart() {
     ctx.stroke();
   }
 
-  // Draw Notes
-  for(const n of notes){
-    const x = n.d*110+50;
-    const y = centerY - (n.t-currentTime)*0.5;
-    if(y<-50||y>canvas.height+50) continue;
+  for (const n of chartData.notes.normal) {
+    const x = n.d * 110 + 50;
+    const y = centerY - (n.t - currentTime) * 0.5;
+    if (y < -50 || y > canvas.height + 50) continue;
 
-    const baseColor = laneColors[n.d % 4];
-    if(n.d <= 3){
-      ctx.fillStyle = baseColor;
+    const c = laneColors[n.d % 4];
+    if (n.d <= 3) {
+      ctx.fillStyle = c;
       ctx.fillRect(x-15,y-15,30,30);
     } else {
-      ctx.strokeStyle = baseColor;
+      ctx.strokeStyle = c;
       ctx.lineWidth = 4;
       ctx.strokeRect(x-15,y-15,30,30);
     }
