@@ -66,7 +66,6 @@ button,
 .upload-btn {
   width: 44px;
   height: 44px;
-  aspect-ratio: 1 / 1;
   background: #222;
   color: #fff;
   border: 1px solid #555;
@@ -87,8 +86,6 @@ button:active,
 /* Icon sizing inside square buttons */
 button img,
 .upload-btn img {
-  width: 70%;
-  height: 70%;
   object-fit: contain;
   pointer-events: none;
 }
@@ -131,7 +128,6 @@ button img,
 .m-btn {
   width: 40px;
   height: 40px;
-  aspect-ratio: 1 / 1;
   font-size: 24px;
   font-weight: bold;
   display: flex;
@@ -156,6 +152,6 @@ button img,
 }
 .player-btn img {
   image-rendering: pixelated; /* Keeps pixel art sharp when upscaled */
-  width: 128px !important;
-  height: 128px !important;
+  width: 128px;
+  height: 128px;
 }
