@@ -154,7 +154,13 @@ button img,
   body { flex-direction: column; }
   textarea { width: 100%; height: 200px; }
 }
-
 img {
-  image-rendering: pixelated;
+  image-rendering: pixelated; /* Keeps pixel art sharp when upscaled */
+  width: 32px;
+  height: 32px;
+}
+.player-btn img {
+  image-rendering: pixelated; /* Keeps pixel art sharp when upscaled */
+  width: 128px;
+  height: 128px;
 }
