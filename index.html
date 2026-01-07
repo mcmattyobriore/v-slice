@@ -14,71 +14,114 @@
 
 <!-- Optional: app title when saved -->
 <meta name="apple-mobile-web-app-title" content="VslicR5">
+
+<style>
+  /* Ensure the body stacks vertically to allow the logo on top */
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+  }
+
+.logo-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.logo-container img {
+    width: 128px;
+    height: 128px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges; /* For broader browser support in 2026 */
+    object-fit: contain;
+}
+
+  /* Container for the existing editor layout */
+  .main-content {
+    display: flex;
+    width: 100%;
+    gap: 12px;
+  }
+
+  @media (max-width: 800px) {
+    .main-content { flex-direction: column; }
+  }
+</style>
 </head>
 
 <body>
-<textarea id="jsonInput" spellcheck="false"></textarea>
 
-<div class="right">
-  <canvas id="chart" width="900" height="400"></canvas>
+<div class="logo-container">
+  <img src="logo.png" alt="VslicR5 Logo">
+</div>
 
-  <div class="row">
-<label class="upload-btn">
-  <img src="import.png" alt="import JSON" />
-  <input
-    type="file"
-    accept=".json"
-    onchange="importJSON(this)"
-    hidden
-  />
-</label>
-<label class="upload-btn">
-  <img src="music.png" alt="import Audio" />
-  <input
-    type="file"
-    accept=".ogg,.wav,.mp3,audio/*"
-    onchange="importAudio(this)"
-    hidden
-  />
-</label>
-    <button onclick="playAudio()"><img src="play.png"/></button>
-    <button onclick="pauseAudio()"><img src="pause.png"/></button>
-    <button onclick="stopAudio()"><img src="stop.png"/></button>
-  </div>
+<div class="main-content">
+  <textarea id="jsonInput" spellcheck="false"></textarea>
 
-  <div class="row">
-    <button onclick="seekTime(-100)">-100ms</button>
-    <button onclick="seekTime(100)">+100ms</button>
-    <span id="timeLabel">Time: 0 ms</span>
-  </div>
+  <div class="right">
+    <canvas id="chart" width="900" height="400"></canvas>
 
-  <div class="mobile-grid">
-    <div class="btn-group">
-      <small>OPPONENT (WASD)</small>
-      <div class="pad">
-        <button class="m-btn opponent-btn" onmousedown="addNote(4)">A</button>
-        <button class="m-btn opponent-btn" onmousedown="addNote(5)">S</button>
-        <button class="m-btn opponent-btn" onmousedown="addNote(6)">W</button>
-        <button class="m-btn opponent-btn" onmousedown="addNote(7)">D</button>
+    <div class="row">
+      <label class="upload-btn">
+        <img src="import.png" alt="import JSON" />
+        <input
+          type="file"
+          accept=".json"
+          onchange="importJSON(this)"
+          hidden
+        />
+      </label>
+      <label class="upload-btn">
+        <img src="music.png" alt="import Audio" />
+        <input
+          type="file"
+          accept=".ogg,.wav,.mp3,audio/*"
+          onchange="importAudio(this)"
+          hidden
+        />
+      </label>
+      <button onclick="playAudio()"><img src="play.png"/></button>
+      <button onclick="pauseAudio()"><img src="pause.png"/></button>
+      <button onclick="stopAudio()"><img src="stop.png"/></button>
+    </div>
+
+    <div class="row">
+      <button onclick="seekTime(-100)">-100ms</button>
+      <button onclick="seekTime(100)">+100ms</button>
+      <span id="timeLabel">Time: 0 ms</span>
+    </div>
+
+    <div class="mobile-grid">
+      <div class="btn-group">
+        <small>OPPONENT (WASD)</small>
+        <div class="pad">
+          <button class="m-btn opponent-btn" onmousedown="addNote(4)">A</button>
+          <button class="m-btn opponent-btn" onmousedown="addNote(5)">S</button>
+          <button class="m-btn opponent-btn" onmousedown="addNote(6)">W</button>
+          <button class="m-btn opponent-btn" onmousedown="addNote(7)">D</button>
+        </div>
+      </div>
+      <div class="btn-group">
+        <small>PLAYER (Arrows)</small>
+        <div class="pad">
+          <button class="m-btn player-btn" onmousedown="addNote(0)"><img src="left.png"/></button>
+          <button class="m-btn player-btn" onmousedown="addNote(1)"><img src="down.png"/></button>
+          <button class="m-btn player-btn" onmousedown="addNote(2)"><img src="up.png"/></button>
+          <button class="m-btn player-btn" onmousedown="addNote(3)"><img src="right.png"/></button>
+        </div>
       </div>
     </div>
-    <div class="btn-group">
-      <small>PLAYER (Arrows)</small>
-      <div class="pad">
-        <button class="m-btn player-btn" onmousedown="addNote(0)"><img src="left.png"/></button>
-        <button class="m-btn player-btn" onmousedown="addNote(1)"><img src="down.png"/></button>
-        <button class="m-btn player-btn" onmousedown="addNote(2)"><img src="up.png"/></button>
-        <button class="m-btn player-btn" onmousedown="addNote(3)"><img src="right.png"/></button>
-      </div>
+
+    <div class="row">
+      <button onclick="saveFromJSON()"><img src="save.png"/></button>
+      <button onclick="exportJSON()"><img src="export.png"/></button>
     </div>
-  </div>
 
-  <div class="row">
-    <button onclick="saveFromJSON()"><img src="save.png"/></button>
-    <button onclick="exportJSON()"><img src="export.png"/></button>
+    <audio id="audio"></audio>
   </div>
-
-  <audio id="audio"></audio>
 </div>
 
 <script src="scriptish.js"></script>
