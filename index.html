@@ -6,61 +6,165 @@
 <title>VslicR5 - Mobile Edition</title>
 <link rel="shortcut icon" type="image/png" href="favicon.png">
 
-<link rel="stylesheet" href="stylish.css">
-
 <!-- Enable standalone (fullscreen) mode on iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<!-- Optional: app title when saved -->
 <meta name="apple-mobile-web-app-title" content="VslicR5">
 
 <style>
-  /* Ensure the body stacks vertically to allow the logo on top */
+  /* All CSS moved inline as requested */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    box-sizing: border-box;
+  }
+
+  textarea, input {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
   body {
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #eee;
+    margin: 0;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 10px;
+    overscroll-behavior: none;
+    touch-action: manipulation;
   }
 
-.logo-container {
+  .logo-container {
     width: 100%;
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
-}
+  }
 
-.logo-container img {
+  .logo-container img {
     width: 160px;
     height: 160px;
     image-rendering: pixelated;
     object-fit: contain;
-    cursor: pointer; /* Indicates it is clickable */
-}
+    cursor: pointer;
+  }
 
-  /* Container for the existing editor layout */
   .main-content {
     display: flex;
     width: 100%;
     gap: 12px;
   }
 
+  textarea {
+    width: 320px;
+    height: 90vh;
+    background: #1e1e1e;
+    color: #0f0;
+    border: 1px solid #444;
+    padding: 8px;
+    font-family: monospace;
+    font-size: 11px;
+    outline: none;
+  }
+
+  .right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  canvas {
+    background: #000;
+    border: 1px solid #444;
+    width: 100%;
+    max-width: 900px;
+  }
+
+  .row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  button, .upload-btn {
+    width: 44px;
+    height: 44px;
+    background: #222;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  button:active, .upload-btn:active { background: #444; }
+
+  button img, .upload-btn img {
+    max-width: 32px;
+    max-height: 32px;
+    object-fit: contain;
+    pointer-events: none;
+  }
+
+  .mobile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 10px;
+    background: #222;
+    padding: 15px;
+    border-radius: 8px;
+  }
+
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .pad {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .m-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    font-weight: bold;
+    background: transparent;
+    border: none;
+  }
+
+  .opponent-btn { background: rgba(153, 0, 0, 0.2) !important; }
+  .player-btn { background: rgba(0, 85, 255, 0.2) !important; }
+
   @media (max-width: 800px) {
     .main-content { flex-direction: column; }
+    textarea { width: 100%; height: 200px; }
   }
 </style>
 </head>
 
 <body>
 
-<!-- Logo with click-to-hide functionality and tooltip -->
 <div class="logo-container" id="logoWrapper">
   <img 
     src="logo.png" 
     alt="VslicR5 Logo" 
     title="click me to hide:)" 
-    onclick="document.getElementById('logoWrapper').style.display='none'"
+    onclick="this.parentElement.style.display='none'"
   >
 </div>
 
@@ -73,21 +177,11 @@
     <div class="row">
       <label class="upload-btn">
         <img src="import.png" alt="import JSON" />
-        <input
-          type="file"
-          accept=".json"
-          onchange="importJSON(this)"
-          hidden
-        />
+        <input type="file" accept=".json" onchange="importJSON(this)" hidden />
       </label>
       <label class="upload-btn">
         <img src="music.png" alt="import Audio" />
-        <input
-          type="file"
-          accept=".ogg,.wav,.mp3,audio/*"
-          onchange="importAudio(this)"
-          hidden
-        />
+        <input type="file" accept=".ogg,.wav,.mp3,audio/*" onchange="importAudio(this)" hidden />
       </label>
       <button onclick="playAudio()"><img src="play.png"/></button>
       <button onclick="pauseAudio()"><img src="pause.png"/></button>
@@ -97,7 +191,7 @@
     <div class="row">
       <button onclick="seekTime(-100)">-100ms</button>
       <button onclick="seekTime(100)">+100ms</button>
-      <span id="timeLabel">Time: 0 ms</span>
+      <span id="timeLabel">Time: 0 ms - 0 ms</span>
     </div>
 
     <div class="mobile-grid">
@@ -122,6 +216,13 @@
     </div>
 
     <div class="row">
+      <!-- Trash button with hover effect and confirmation -->
+      <button 
+        onclick="if(confirm('Are you sure you want to delete current textarea content?')){ document.getElementById('jsonInput').value=''; }"
+        onmouseenter="this.querySelector('img').src='trash-eager.png'"
+        onmouseleave="this.querySelector('img').src='trash.png'">
+        <img src="trash.png" alt="Trash"/>
+      </button>
       <button onclick="saveFromJSON()"><img src="save.png"/></button>
       <button onclick="exportJSON()"><img src="export.png"/></button>
     </div>
