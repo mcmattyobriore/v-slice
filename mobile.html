@@ -142,22 +142,6 @@ html, body {
   background: #f9f9f9;
   transition: background 0.2s, border-color 0.2s;
 }
-
-.upload-btn:hover {
-  background: #f0f0f0;
-  border-color: #999;
-}
-
-.upload-btn img {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 8px;
-}
-
-.upload-btn span {
-  font-size: 14px;
-  color: #333;
-}
 </style>
 <!-- Enable standalone (fullscreen) mode on iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -176,7 +160,6 @@ html, body {
   <div class="row">
 <label class="upload-btn">
   <img src="import.png" alt="import JSON" />
-  <span>Import JSON</span>
   <input
     type="file"
     accept=".json"
@@ -186,7 +169,6 @@ html, body {
 </label>
 <label class="upload-btn">
   <img src="music.png" alt="import Audio" />
-  <span>Import Audio</span>
   <input
     type="file"
     accept=".ogg,.wav,.mp3,audio/*"
