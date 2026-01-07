@@ -219,9 +219,9 @@
       <!-- Trash button with hover effect and confirmation -->
       <button 
         onclick="if(confirm('Are you sure you want to delete current textarea content?')){ document.getElementById('jsonInput').value=''; }"
-        onmouseenter="this.querySelector('img').src='trash-eager.png'"
-        onmouseleave="this.querySelector('img').src='trash.png'">
-        <img src="trash.png" alt="Trash"/>
+        onmouseenter="this.querySelector('img').src='..system/trash/trash-eager.png'"
+        onmouseleave="this.querySelector('img').src='..system/trash/trash.png'">
+        <img src="../system/trash/trash.png" alt="Trash"/>
       </button>
       <button onclick="saveFromJSON()"><img src="save.png"/></button>
       <button onclick="exportJSON()"><img src="export.png"/></button>
