@@ -36,6 +36,7 @@
     height: 160px;
     image-rendering: pixelated;
     object-fit: contain;
+    cursor: pointer; /* Indicates it is clickable */
 }
 
   /* Container for the existing editor layout */
@@ -53,8 +54,14 @@
 
 <body>
 
-<div class="logo-container">
-  <img src="logo.png" alt="VslicR5 Logo">
+<!-- Logo with click-to-hide functionality and tooltip -->
+<div class="logo-container" id="logoWrapper">
+  <img 
+    src="logo.png" 
+    alt="VslicR5 Logo" 
+    title="click me to hide:)" 
+    onclick="document.getElementById('logoWrapper').style.display='none'"
+  >
 </div>
 
 <div class="main-content">
