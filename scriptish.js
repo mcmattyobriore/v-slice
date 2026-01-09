@@ -181,13 +181,14 @@ function drawChart() {
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * 0.5;
     
+    // Check visibility (including long note tails)
     if (y < -50 && y + (n.l * 0.5) < -50) continue;
     if (y > canvas.height + 50) continue;
 
     const laneIndex = n.d % 4;
     const img = n.d <= 3 ? playerImages[laneIndex] : opponentImages[laneIndex];
 
-    // 1. Draw Arrow Image FIRST
+    // 1. Draw Arrow Image Head FIRST
     if (img.complete && img.naturalWidth !== 0) {
       ctx.save();
       ctx.translate(x, y);
@@ -196,14 +197,24 @@ function drawChart() {
       ctx.restore();
     }
 
-    // 2. Draw Long Note Body SECOND (to ensure it is on top)
+    // 2. Draw Long Note Body SECOND (Drawn ON TOP of arrow) with GRADIENT
     if (n.l > 0) {
       const holdHeight = n.l * 0.5;
-      ctx.globalAlpha = 0.6; // 60% opacity
-      ctx.fillStyle = laneColors[laneIndex];
-      // Draw centered hold bar on top of the head
+      
+      ctx.save();
+      ctx.globalAlpha = 0.6; // Base 60% opacity
+      
+      // Create vertical gradient from note color to transparent
+      // Gradient starts at y (note head) and ends at y + holdHeight (note tail)
+      const grad = ctx.createLinearGradient(x, y, x, y + holdHeight);
+      grad.addColorStop(0, laneColors[laneIndex]);
+      grad.addColorStop(1, "transparent");
+      
+      ctx.fillStyle = grad;
+      // Draw centered hold bar (width 20)
       ctx.fillRect(x - 10, y, 20, holdHeight);
-      ctx.globalAlpha = 1.0;
+      
+      ctx.restore();
     }
   }
 }
