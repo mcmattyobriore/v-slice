@@ -8,20 +8,34 @@ let chartData;
 let currentTime = 0;
 let playing = false;
 
-// EXACT DIRECTION MAPPING
-// Lane 0 = Left (Purple), 1 = Down (Blue), 2 = Up (Green), 3 = Right (Red)
-const directions = ["purple", "blue", "green", "red"];
+// 1. MANUAL FILE PATHS FOR PLAYER (Lanes 0-3)
+const playerPaths = [
+  "system/arrows/arrow_purple.png", // Lane 0: Left
+  "system/arrows/arrow_blue.png",   // Lane 1: Down
+  "system/arrows/arrow_green.png",  // Lane 2: Up
+  "system/arrows/arrow_red.png"     // Lane 3: Right
+];
 
-const playerImages = directions.map(dir => {
+// 2. MANUAL FILE PATHS FOR OPPONENT (Lanes 4-7)
+const opponentPaths = [
+  "system/arrows/arrow_miss_purple.png", // Lane 4: Left
+  "system/arrows/arrow_miss_blue.png",   // Lane 5: Down
+  "system/arrows/arrow_miss_green.png",  // Lane 6: Up
+  "system/arrows/arrow_miss_red.png"     // Lane 7: Right
+];
+
+// Preload Player Images
+const playerImages = playerPaths.map(path => {
   const img = new Image();
-  img.src = `../system/arrow_${dir}.png`;
+  img.src = path;
   img.onload = () => drawChart();
   return img;
 });
 
-const opponentImages = directions.map(dir => {
+// Preload Opponent Images
+const opponentImages = opponentPaths.map(path => {
   const img = new Image();
-  img.src = `../system/arrow_miss_${dir}.png`;
+  img.src = path;
   img.onload = () => drawChart();
   return img;
 });
@@ -142,10 +156,9 @@ function addNote(lane) {
 
 function drawChart() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.imageSmoothingEnabled = false; // Ensures pixelated rendering
+  ctx.imageSmoothingEnabled = false; 
   const centerY = canvas.height / 2;
 
-  // Lane Dividers
   for (let i=0;i<8;i++) {
     ctx.strokeStyle="#333";
     ctx.beginPath();
