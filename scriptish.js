@@ -44,6 +44,10 @@ const opponentImages = opponentPaths.map(path => {
 // 0: Left (-90deg), 1: Down (180deg), 2: Up (0deg), 3: Right (90deg)
 const rotations = [-Math.PI / 2, Math.PI, 0, Math.PI / 2];
 
+// Fallback colors for lanes (used for long notes)
+const laneColors = ["#C24B99", "#00FFFF", "#12FA05", "#F9393F"];
+
+
 window.addEventListener("keydown", e => {
   if (document.activeElement === jsonInput) return;
   switch(e.key.toLowerCase()) {
@@ -95,7 +99,7 @@ function syncTextarea() {
 }
 
 function importJSON(input) {
-  const file = input.files[0];
+  const file = input.files;
   if (!file) return;
   const r = new FileReader();
   r.onload = e => {
@@ -107,7 +111,7 @@ function importJSON(input) {
 }
 
 function importAudio(input) {
-  const file = input.files[0];
+  const file = input.files;
   if (!file) return;
   audio.src = URL.createObjectURL(file);
   audio.load();
@@ -158,7 +162,7 @@ function addNote(lane) {
 function drawChart() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
   
-  // RENDER PIXELATED: This is critical for the 2026 pixel-art look
+  // RENDER PIXELATED
   ctx.imageSmoothingEnabled = false; 
   
   const centerY = canvas.height / 2;
@@ -176,19 +180,29 @@ function drawChart() {
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * 0.5;
     
-    if (y < -50 || y > canvas.height + 50) continue;
+    if (y < -50 || y > canvas.height + 50 + (n.l * 0.5)) continue; // Update visibility check for holds
 
     const laneIndex = n.d % 4;
     const img = n.d <= 3 ? playerImages[laneIndex] : opponentImages[laneIndex];
 
+    // --- NEW: Draw Long Note Body if 'l' (length) > 0 ---
+    if (n.l > 0) {
+      const holdHeight = n.l * 0.5; // Scale length (ms) to canvas pixels
+      ctx.fillStyle = laneColors[laneIndex];
+      ctx.globalAlpha = 0.6; // 60% opacity
+      
+      // Draw a rectangle from the arrow head down the chart
+      // Note width is slightly smaller than lane width (40px vs ~110px)
+      ctx.fillRect(x - 10, y, 20, holdHeight); 
+      ctx.globalAlpha = 1.0; // Reset opacity
+    }
+
+    // Draw the image HEAD
     if (img.complete && img.naturalWidth !== 0) {
       ctx.save();
-      // Move to note center
       ctx.translate(x, y);
-      // Rotate based on direction index
       ctx.rotate(rotations[laneIndex]);
-      // Draw centered at (0,0) - half of 40x40 size is 20
-      ctx.drawImage(img, -20, -20, 40, 40);
+      ctx.drawImage(img, -20, -20, 40, 40); // 40x40 size
       ctx.restore();
     }
   }
