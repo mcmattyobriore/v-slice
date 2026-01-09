@@ -8,7 +8,7 @@ let chartData;
 let currentTime = 0;
 let playing = false;
 
-// 1. MANUAL FILE PATHS FOR PLAYER (Lanes 0-3)
+// MANUAL FILE PATHS FOR PLAYER (Lanes 0-3)
 const playerPaths = [
   "system/arrows/arrow_purple.png", // Lane 0: Left
   "system/arrows/arrow_blue.png",   // Lane 1: Down
@@ -16,7 +16,7 @@ const playerPaths = [
   "system/arrows/arrow_red.png"     // Lane 3: Right
 ];
 
-// 2. MANUAL FILE PATHS FOR OPPONENT (Lanes 4-7)
+// MANUAL FILE PATHS FOR OPPONENT (Lanes 4-7)
 const opponentPaths = [
   "system/arrows/arrow_miss_purple.png", // Lane 4: Left
   "system/arrows/arrow_miss_blue.png",   // Lane 5: Down
@@ -40,13 +40,16 @@ const opponentImages = opponentPaths.map(path => {
   return img;
 });
 
-// Rotation mapping (Assuming default image is pointing UP)
-// 0: Left (-90deg), 1: Down (180deg), 2: Up (0deg), 3: Right (90deg)
-const rotations = [-Math.PI / 2, Math.PI, 0, Math.PI / 2];
+// Exact rotations for Left, Down, Up, Right (based on original being UP)
+const rotations = [
+  -90 * (Math.PI / 180), // Left (-90 deg)
+  180 * (Math.PI / 180), // Down (180 deg)
+  0 * (Math.PI / 180),   // Up (0 deg)
+  90 * (Math.PI / 180)   // Right (90 deg)
+];
 
-// Fallback colors for lanes (used for long notes)
+// Hold Note Colors (matches arrow colors)
 const laneColors = ["#C24B99", "#00FFFF", "#12FA05", "#F9393F"];
-
 
 window.addEventListener("keydown", e => {
   if (document.activeElement === jsonInput) return;
@@ -99,7 +102,7 @@ function syncTextarea() {
 }
 
 function importJSON(input) {
-  const file = input.files;
+  const file = input.files[0];
   if (!file) return;
   const r = new FileReader();
   r.onload = e => {
@@ -111,7 +114,7 @@ function importJSON(input) {
 }
 
 function importAudio(input) {
-  const file = input.files;
+  const file = input.files[0];
   if (!file) return;
   audio.src = URL.createObjectURL(file);
   audio.load();
@@ -161,8 +164,6 @@ function addNote(lane) {
 
 function drawChart() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  
-  // RENDER PIXELATED
   ctx.imageSmoothingEnabled = false; 
   
   const centerY = canvas.height / 2;
@@ -180,29 +181,29 @@ function drawChart() {
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * 0.5;
     
-    if (y < -50 || y > canvas.height + 50 + (n.l * 0.5)) continue; // Update visibility check for holds
+    // Check visibility (including long note tails)
+    if (y < -50 && y + (n.l * 0.5) < -50) continue;
+    if (y > canvas.height + 50) continue;
 
     const laneIndex = n.d % 4;
     const img = n.d <= 3 ? playerImages[laneIndex] : opponentImages[laneIndex];
 
-    // --- NEW: Draw Long Note Body if 'l' (length) > 0 ---
+    // 1. Draw Long Note Body (if l > 0)
     if (n.l > 0) {
-      const holdHeight = n.l * 0.5; // Scale length (ms) to canvas pixels
-      ctx.fillStyle = laneColors[laneIndex];
+      const holdHeight = n.l * 0.5;
       ctx.globalAlpha = 0.6; // 60% opacity
-      
-      // Draw a rectangle from the arrow head down the chart
-      // Note width is slightly smaller than lane width (40px vs ~110px)
-      ctx.fillRect(x - 10, y, 20, holdHeight); 
-      ctx.globalAlpha = 1.0; // Reset opacity
+      ctx.fillStyle = laneColors[laneIndex];
+      // Draw centered hold bar
+      ctx.fillRect(x - 10, y, 20, holdHeight);
+      ctx.globalAlpha = 1.0;
     }
 
-    // Draw the image HEAD
+    // 2. Draw Arrow Image
     if (img.complete && img.naturalWidth !== 0) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rotations[laneIndex]);
-      ctx.drawImage(img, -20, -20, 40, 40); // 40x40 size
+      ctx.drawImage(img, -20, -20, 40, 40);
       ctx.restore();
     }
   }
