@@ -40,9 +40,6 @@ const opponentImages = opponentPaths.map(path => {
   return img;
 });
 
-// Fallback colors for lanes
-const laneColors = ["#C24B99", "#00FFFF", "#12FA05", "#F9393F"];
-
 window.addEventListener("keydown", e => {
   if (document.activeElement === jsonInput) return;
   switch(e.key.toLowerCase()) {
@@ -156,9 +153,13 @@ function addNote(lane) {
 
 function drawChart() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
+  
+  // Disable smoothing for pixelated arrows
   ctx.imageSmoothingEnabled = false; 
+  
   const centerY = canvas.height / 2;
 
+  // Draw Lane Dividers
   for (let i=0;i<8;i++) {
     ctx.strokeStyle="#333";
     ctx.beginPath();
@@ -167,27 +168,20 @@ function drawChart() {
     ctx.stroke();
   }
 
+  // Draw the images on the chart
   for (const n of chartData.notes.normal) {
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * 0.5;
+    
+    // Only render what is visible on screen
     if (y < -50 || y > canvas.height + 50) continue;
 
     const laneIndex = n.d % 4;
     const img = n.d <= 3 ? playerImages[laneIndex] : opponentImages[laneIndex];
 
-    if (img.complete && img.naturalWidth !== 0) {
-      ctx.drawImage(img, x - 20, y - 20, 40, 40);
-    } else {
-      const c = laneColors[laneIndex];
-      ctx.fillStyle = c;
-      if (n.d <= 3) {
-        ctx.fillRect(x-15,y-15,30,30);
-      } else {
-        ctx.strokeStyle = c;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x-15,y-15,30,30);
-      }
-    }
+    // Draw the image centered at the current note position
+    // Squares are gone; images are drawn directly here
+    ctx.drawImage(img, x - 20, y - 20, 40, 40);
   }
 }
 
