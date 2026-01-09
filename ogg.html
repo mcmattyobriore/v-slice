@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>VslicR5 - Turbo OGG Converter</title>
+<title>VOGGR5 - ogg converter for V slice</title>
 <style>
   /* MATCHING YOUR INDEX CSS */
   * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -50,6 +50,20 @@
     logEl.innerHTML = `<div>> ${msg}</div>` + logEl.innerHTML;
   }
 
+  // NEW: Detect when a file is uploaded
+  fileInput.onchange = () => {
+    const file = fileInput.files[0];
+    if (file) {
+      // Clear old state
+      downloadLink.style.display = 'none';
+      document.getElementById('progCont').style.display = 'none';
+      progressBar.style.width = '0%';
+      
+      // Show readiness
+      updateLog(`<span style="color:#00f2ff">(${file.name}) is ready to convert</span>`);
+    }
+  };
+
   async function initFFmpeg() {
     if (ffmpeg) return;
     updateLog("Loading heavy engine (required for video)...");
@@ -60,14 +74,13 @@
 
   convertBtn.onclick = async () => {
     const file = fileInput.files[0];
-    if (!file) return alert("Select a file!");
+    if (!file) return alert("Select a file first!");
 
     const isVideo = file.type.includes('video');
     document.getElementById('progCont').style.display = 'block';
     downloadLink.style.display = 'none';
 
     if (isVideo) {
-      // Use FFmpeg for video files (extracting audio)
       await initFFmpeg();
       updateLog("Processing video...");
       ffmpeg.FS('writeFile', 'input', await FFmpeg.fetchFile(file));
@@ -76,13 +89,10 @@
       const data = ffmpeg.FS('readFile', 'out.ogg');
       showDownload(data.buffer, file.name);
     } else {
-      // Use Web Audio API for near-instant audio conversion
       updateLog("Fast-converting audio...");
       progressBar.style.width = '50%';
       const reader = new FileReader();
       reader.onload = async (e) => {
-        // Simple passthrough or conversion logic here
-        // For standard browsers in 2026, we simply re-wrap to blob
         showDownload(e.target.result, file.name);
         progressBar.style.width = '100%';
       };
@@ -93,11 +103,11 @@
   function showDownload(buffer, originalName) {
     const blob = new Blob([buffer], { type: 'audio/ogg' });
     const url = URL.createObjectURL(blob);
-    const baseName = originalName.split('.')[0];
+    const baseName = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
     downloadLink.href = url;
     downloadLink.download = `${baseName}.ogg`;
     downloadLink.style.display = 'block';
-    updateLog("DONE!");
+    updateLog("DONE! Click download below.");
   }
 </script>
 </body>
