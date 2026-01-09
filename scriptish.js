@@ -146,37 +146,48 @@ function drawChart() {
     ctx.stroke();
   }
 
+  // ===== PASS 1: DRAW HOLDS (BEHIND) =====
   for (const n of chartData.notes.normal) {
+    if (n.l <= 0) continue;
+
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * SCROLL_MULT;
     const holdHeight = n.l * SCROLL_MULT;
 
-    if (y + holdHeight < -ARROW_SIZE) continue;
-    if (y - ARROW_SIZE > canvas.height) continue;
+    const topY = y - ARROW_HALF - holdHeight;
+    const bottomY = y - ARROW_HALF;
+
+    if (bottomY < 0 || topY > canvas.height) continue;
+
+    const lane = n.d % 4;
+
+    ctx.globalAlpha = 0.6;
+    ctx.fillStyle = laneColors[lane];
+    ctx.fillRect(
+      x - HOLD_WIDTH / 2,
+      topY,
+      HOLD_WIDTH,
+      holdHeight
+    );
+    ctx.globalAlpha = 1;
+  }
+
+  // ===== PASS 2: DRAW ARROWS (FRONT) =====
+  for (const n of chartData.notes.normal) {
+    const x = n.d * 110 + 50;
+    const y = centerY - (n.t - currentTime) * SCROLL_MULT;
+
+    if (y < -ARROW_SIZE || y > canvas.height + ARROW_SIZE) continue;
 
     const lane = n.d % 4;
     const img = n.d < 4 ? playerImages[lane] : opponentImages[lane];
 
-    // Arrow
     if (img.complete && img.naturalWidth) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rotations[lane]);
       ctx.drawImage(img, -ARROW_HALF, -ARROW_HALF, ARROW_SIZE, ARROW_SIZE);
       ctx.restore();
-    }
-
-    // Hold (ON TOP & BELOW arrow)
-    if (n.l > 0) {
-      ctx.globalAlpha = 0.6;
-      ctx.fillStyle = laneColors[lane];
-      ctx.fillRect(
-        x - HOLD_WIDTH / 2,
-        y + ARROW_HALF,
-        HOLD_WIDTH,
-        holdHeight
-      );
-      ctx.globalAlpha = 1;
     }
   }
 }
