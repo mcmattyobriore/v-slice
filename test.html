@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XML SpriteSheet → GIF Preview & Export</title>
+
+<style>
+body {
+  margin: 0;
+  padding: 10px;
+  background: #111;
+  color: #0f0;
+  font-family: monospace;
+}
+
+h3 { text-align: center; margin: 6px 0; }
+
+.panel {
+  max-width: 520px;
+  margin: auto;
+  background: #1b1b1b;
+  border: 1px solid #444;
+  padding: 10px;
+}
+
+label {
+  display: block;
+  background: #222;
+  border: 1px solid #555;
+  padding: 8px;
+  margin-bottom: 6px;
+  text-align: center;
+  cursor: pointer;
+}
+
+canvas {
+  display: block;
+  margin: 10px auto;
+  background: #000;
+  border: 1px solid #555;
+  image-rendering: pixelated;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+button {
+  background: #222;
+  border: 1px solid #555;
+  color: #fff;
+  padding: 6px 10px;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+#info {
+  font-size: 12px;
+  text-align: center;
+  margin-top: 6px;
+}
+</style>
+</head>
+
+<body>
+
+<h3>XML SpriteSheet → GIF Preview & Export</h3>
+
+<div class="panel">
+  <label>Load XML
+    <input hidden type="file" accept=".xml" onchange="loadXML(this)">
+  </label>
+
+  <label>Load SpriteSheet Image
+    <input hidden type="file" accept="image/*" onchange="loadImage(this)">
+  </label>
+
+  <canvas id="canvas" width="600" height="600"></canvas>
+
+  <div class="controls">
+    <button onclick="play()">▶</button>
+    <button onclick="pause()">⏸</button>
+    <button onclick="step(-1)">⟵</button>
+    <button onclick="step(1)">⟶</button>
+    <button onclick="exportGIF()">💾 Export GIF</button>
+  </div>
+
+  <div id="info">Frames: 0 | FPS: 12</div>
+  <input type="range" min="1" max="30" value="12" oninput="setFPS(this.value)">
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
+
+<script>
+/* ---------- STATE ---------- */
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let image = null;
+let frames = [];
+let frameIndex = 0;
+let playing = false;
+let fps = 12;
+let lastTime = 0;
+
+/* ---------- LOAD XML ---------- */
+function loadXML(input){
+  const reader = new FileReader();
+  reader.onload = () => {
+    const xml = new DOMParser().parseFromString(reader.result, "text/xml");
+    frames = [];
+    xml.querySelectorAll("SubTexture").forEach(st => {
+      frames.push({
+        name: st.getAttribute("name"),
+        x: +st.getAttribute("x"),
+        y: +st.getAttribute("y"),
+        w: +st.getAttribute("width"),
+        h: +st.getAttribute("height"),
+        fx: +st.getAttribute("frameX"),
+        fy: +st.getAttribute("frameY"),
+        fw: +st.getAttribute("frameWidth"),
+        fh: +st.getAttribute("frameHeight")
+      });
+    });
+    frameIndex = 0;
+    updateInfo();
+  };
+  reader.readAsText(input.files[0]);
+}
+
+/* ---------- LOAD IMAGE ---------- */
+function loadImage(input){
+  image = new Image();
+  image.onload = () => draw();
+  image.src = URL.createObjectURL(input.files[0]);
+}
+
+/* ---------- DRAW FRAME ---------- */
+function draw(){
+  if(!image || !frames.length) return;
+  const f = frames[frameIndex];
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const cx = canvas.width/2 - f.fw/2;
+  const cy = canvas.height/2 - f.fh/2;
+  ctx.drawImage(
+    image,
+    f.x, f.y, f.w, f.h,
+    cx + f.fx, cy + f.fy,
+    f.w, f.h
+  );
+}
+
+/* ---------- LOOP ---------- */
+function loop(time){
+  if(playing && time - lastTime > 1000 / fps){
+    frameIndex = (frameIndex + 1) % frames.length;
+    draw();
+    lastTime = time;
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ---------- CONTROLS ---------- */
+function play(){ playing = true; }
+function pause(){ playing = false; }
+function step(dir){
+  playing = false;
+  frameIndex = (frameIndex + dir + frames.length) % frames.length;
+  draw();
+}
+function setFPS(v){ fps = +v; updateInfo(); }
+function updateInfo(){
+  document.getElementById("info").textContent =
+    `Frames: ${frames.length} | FPS: ${fps}`;
+}
+
+/* ---------- EXPORT GIF ---------- */
+function exportGIF(){
+  if(!frames.length || !image) return alert("Load XML + image first!");
+  
+  const gif = new GIF({
+    workers: 2,
+    quality: 10,
+    width: canvas.width,
+    height: canvas.height
+  });
+
+  frames.forEach(f => {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const cx = canvas.width/2 - f.fw/2;
+    const cy = canvas.height/2 - f.fh/2;
+    ctx.drawImage(image, f.x, f.y, f.w, f.h, cx + f.fx, cy + f.fy, f.w, f.h);
+    gif.addFrame(ctx, {copy:true, delay:1000/fps});
+  });
+
+  gif.on('finished', blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'animation.gif';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  gif.render();
+}
+</script>
+
+</body>
+</html>
