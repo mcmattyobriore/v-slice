@@ -1,28 +1,32 @@
 /* ================================
-   LIBRARY WIDGET / MODAL
+   LIBRARY WIDGET / MODAL (UPGRADED)
+   Fixed square sizing + placeholders
    Works with openLibrary()
 ================================ */
 
 (function () {
 
-  /* -------- SAMPLE LIBRARY DATA --------
-     You can replace or expand this later
-  ------------------------------------- */
+  /* -------- LIBRARY DATA -------- */
   const LIBRARY_ITEMS = [
+    {
+      name: "bf.png",
+      type: "image",
+      content: null
+    },
+    {
+      name: "op.png",
+      type: "image",
+      content: null
+    },
+    {
+      name: "random-chart.json",
+      type: "text",
+      content: null
+    },
     {
       name: "Example Text",
       type: "text",
       content: "This is a preview of some text.\nYou can put chart data, notes, or descriptions here."
-    },
-    {
-      name: "BF Icon",
-      type: "image",
-      content: "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/icons/logo.png"
-    },
-    {
-      name: "Reminder",
-      type: "text",
-      content: "Libraries can store:\n- Charts\n- Images\n- Notes\n- Presets"
     }
   ];
 
@@ -49,7 +53,7 @@
   `;
   document.body.appendChild(modal);
 
-  /* -------- STYLES (INJECTED) -------- */
+  /* -------- STYLES -------- */
   const style = document.createElement("style");
   style.textContent = `
     #library-modal {
@@ -107,37 +111,45 @@
       padding: 10px;
     }
 
+    /* --- FIXED GRID --- */
     #library-grid {
       width: 40%;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
       gap: 10px;
       overflow-y: auto;
+      align-content: flex-start;
     }
 
     .library-item {
+      width: 100px;
+      height: 120px;
       background: #222;
       border: 1px solid #444;
       border-radius: 6px;
       padding: 6px;
       cursor: pointer;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .library-item:hover {
       background: #333;
     }
 
+    /* --- TRUE SQUARE --- */
     .library-thumb {
-      width: 100%;
-      height: 70px;
+      width: 88px;
+      height: 88px;
       background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #777;
+      color: #666;
       font-size: 10px;
       overflow: hidden;
+      border-radius: 4px;
     }
 
     .library-thumb img {
@@ -147,9 +159,11 @@
     }
 
     .library-name {
-      margin-top: 5px;
+      margin-top: 4px;
       font-size: 11px;
       color: #0f0;
+      text-align: center;
+      word-break: break-word;
     }
 
     #library-preview {
@@ -186,11 +200,15 @@
     thumb.className = "library-thumb";
 
     if (item.type === "image") {
-      const img = document.createElement("img");
-      img.src = item.content;
-      thumb.appendChild(img);
+      if (item.content) {
+        const img = document.createElement("img");
+        img.src = item.content;
+        thumb.appendChild(img);
+      } else {
+        thumb.textContent = "EMPTY IMG";
+      }
     } else {
-      thumb.textContent = "TEXT";
+      thumb.textContent = "JSON";
     }
 
     const name = document.createElement("div");
@@ -201,6 +219,11 @@
     el.appendChild(name);
 
     el.onclick = () => {
+      if (!item.content) {
+        preview.innerHTML = `<small>Empty asset<br>No preview available.</small>`;
+        return;
+      }
+
       if (item.type === "image") {
         preview.innerHTML = `<img src="${item.content}">`;
       } else {
