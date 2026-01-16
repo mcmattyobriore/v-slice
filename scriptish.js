@@ -7,6 +7,7 @@ const audio = document.getElementById("audio");
 let chartData;
 let currentTime = 0;
 let playing = false;
+let audioUnlocked = false;
 
 // ================== CONSTANTS ==================
 const ARROW_SIZE = 40;
@@ -33,14 +34,14 @@ const opponentPaths = [
 const playerImages = playerPaths.map(path => {
   const img = new Image();
   img.src = path;
-  img.onload = () => drawChart();
+  img.onload = drawChart;
   return img;
 });
 
 const opponentImages = opponentPaths.map(path => {
   const img = new Image();
   img.src = path;
-  img.onload = () => drawChart();
+  img.onload = drawChart;
   return img;
 });
 
@@ -70,6 +71,7 @@ window.addEventListener("keydown", e => {
     case "d": addNote(7); break;
     case " ":
       e.preventDefault();
+      unlockAudio();
       playing ? pauseAudio() : playAudio();
       break;
   }
@@ -84,12 +86,11 @@ chartData = {
   generatedBy: "VslicR5 - FNF v0.8.0"
 };
 
-if (localStorage.getItem("vslicr5_chart")) {
+const savedChart = localStorage.getItem("vslicr5_chart");
+if (savedChart) {
   try {
-    chartData = JSON.parse(localStorage.getItem("vslicr5_chart"));
-  } catch (e) {
-    console.error("Error loading saved chart", e);
-  }
+    chartData = JSON.parse(savedChart);
+  } catch {}
 }
 
 jsonInput.value = JSON.stringify(chartData, null, 2);
@@ -106,8 +107,60 @@ function syncTextarea() {
 }
 
 // ================== AUDIO ==================
-function playAudio() { audio.play(); playing = true; }
-function pauseAudio() { audio.pause(); playing = false; }
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  audio.play().then(() => {
+    audio.pause();
+    audio.currentTime = 0;
+  }).catch(() => {});
+}
+
+function importAudio(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  unlockAudio();
+
+  const url = URL.createObjectURL(file);
+  audio.pause();
+  audio.src = url;
+  audio.load();
+
+  audio.onloadedmetadata = () => {
+    currentTime = 0;
+    updateTimeLabel();
+    drawChart();
+  };
+}
+
+function playAudio() {
+  unlockAudio();
+  audio.play();
+  playing = true;
+}
+
+function pauseAudio() {
+  audio.pause();
+  playing = false;
+}
+
+function stopAudio() {
+  audio.pause();
+  audio.currentTime = 0;
+  currentTime = 0;
+  playing = false;
+  updateTimeLabel();
+  drawChart();
+}
+
+function seekTime(ms) {
+  unlockAudio();
+  currentTime = Math.max(0, currentTime + ms);
+  audio.currentTime = currentTime / 1000;
+  updateTimeLabel();
+  drawChart();
+}
 
 audio.addEventListener("timeupdate", () => {
   if (!playing) return;
@@ -137,7 +190,6 @@ function drawChart() {
 
   const centerY = canvas.height / 2;
 
-  // Lane dividers
   for (let i = 0; i < 8; i++) {
     ctx.strokeStyle = "#333";
     ctx.beginPath();
@@ -146,33 +198,23 @@ function drawChart() {
     ctx.stroke();
   }
 
-  // ===== PASS 1: DRAW HOLDS (BEHIND) =====
   for (const n of chartData.notes.normal) {
     if (n.l <= 0) continue;
 
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * SCROLL_MULT;
     const holdHeight = n.l * SCROLL_MULT;
-
-    // 🔥 FIX: hold starts at note center
     const topY = y - holdHeight;
 
     if (y < 0 || topY > canvas.height) continue;
 
     const lane = n.d % 4;
-
     ctx.globalAlpha = 0.6;
     ctx.fillStyle = laneColors[lane];
-    ctx.fillRect(
-      x - HOLD_WIDTH / 2,
-      topY,
-      HOLD_WIDTH,
-      holdHeight
-    );
+    ctx.fillRect(x - HOLD_WIDTH / 2, topY, HOLD_WIDTH, holdHeight);
     ctx.globalAlpha = 1;
   }
 
-  // ===== PASS 2: DRAW ARROWS (FRONT) =====
   for (const n of chartData.notes.normal) {
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * SCROLL_MULT;
