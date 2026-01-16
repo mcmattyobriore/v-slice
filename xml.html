@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>VslicR5 – Character + Chart Preview</title>
+<title>VslicR5 – FNF Character + Chart Preview</title>
 
 <style>
-* { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+* { box-sizing:border-box; user-select:none; -webkit-user-select:none; }
 body { margin:0; padding:10px; background:#111; color:#eee; font-family:monospace; }
-
 h3 { margin:4px 0; text-align:center; color:#0f0; }
 
 .main { display:flex; gap:10px; }
@@ -19,7 +18,6 @@ h3 { margin:4px 0; text-align:center; color:#0f0; }
 label { display:block; background:#222; border:1px solid #555; padding:8px; text-align:center; cursor:pointer; margin-bottom:5px; }
 
 canvas { background:#000; border:1px solid #444; image-rendering:pixelated; }
-
 .char-row { display:flex; gap:10px; }
 .char-box { flex:1; text-align:center; }
 
@@ -28,7 +26,6 @@ button { background:#222; border:1px solid #555; color:#fff; width:42px; height:
 button:active { background:#444; }
 
 textarea { width:100%; height:140px; background:#1e1e1e; color:#0f0; border:1px solid #444; font-size:11px; }
-
 #timeLabel { text-align:center; font-size:12px; }
 
 @media (max-width:800px){
@@ -40,7 +37,7 @@ textarea { width:100%; height:140px; background:#1e1e1e; color:#0f0; border:1px 
 
 <body>
 
-<h3>VslicR5 – Character + Chart Preview</h3>
+<h3>VslicR5 – FNF Character + Chart Preview</h3>
 
 <div class="main">
 
@@ -49,14 +46,16 @@ textarea { width:100%; height:140px; background:#1e1e1e; color:#0f0; border:1px 
     <strong>PLAYER</strong>
     <label>Player XML<input hidden type="file" accept=".xml" onchange="loadXML(this,'player')"></label>
     <label>Player Image<input hidden type="file" accept=".png,.jpg,.webp" onchange="loadImage(this,'player')"></label>
+    <label>Player JSON<input hidden type="file" accept=".json" onchange="loadCharJSON(this,'player')"></label>
 
     <strong>OPPONENT</strong>
     <label>Opponent XML<input hidden type="file" accept=".xml" onchange="loadXML(this,'opponent')"></label>
     <label>Opponent Image<input hidden type="file" accept=".png,.jpg,.webp" onchange="loadImage(this,'opponent')"></label>
+    <label>Opponent JSON<input hidden type="file" accept=".json" onchange="loadCharJSON(this,'opponent')"></label>
 
     <strong>CHART</strong>
     <label>Chart JSON<input hidden type="file" accept=".json" onchange="loadChart(this)"></label>
-    <label>Music<input hidden type="file" accept="audio/*" onchange="loadAudio(this)"></label>
+    <label>Music (any audio)<input hidden type="file" accept="audio/*" onchange="loadAudio(this)"></label>
   </div>
 
   <textarea id="log" placeholder="log..."></textarea>
@@ -77,11 +76,11 @@ textarea { width:100%; height:140px; background:#1e1e1e; color:#0f0; border:1px 
   <div id="timeLabel">0 ms - 0 ms</div>
 
   <div class="controls">
-    <button onclick="setAnim('idle')">I</button>
-    <button onclick="setAnim('singLEFT')">←</button>
-    <button onclick="setAnim('singDOWN')">↓</button>
-    <button onclick="setAnim('singUP')">↑</button>
-    <button onclick="setAnim('singRIGHT')">→</button>
+    <button onclick="forceAnim('idle')">I</button>
+    <button onclick="forceAnim('singLEFT')">←</button>
+    <button onclick="forceAnim('singDOWN')">↓</button>
+    <button onclick="forceAnim('singUP')">↑</button>
+    <button onclick="forceAnim('singRIGHT')">→</button>
     <button onclick="startPlayback()">▶</button>
     <button onclick="stopPlayback()">■</button>
   </div>
@@ -93,13 +92,12 @@ textarea { width:100%; height:140px; background:#1e1e1e; color:#0f0; border:1px 
 <script>
 /* ---------------- STATE ---------------- */
 const chars = {
-  player: { atlas:{}, image:null, anim:'idle', frame:0 },
-  opponent: { atlas:{}, image:null, anim:'idle', frame:0 }
+  player: { image:null, atlas:{}, anims:{}, cur:'idle', frame:0, fps:24 },
+  opponent:{ image:null, atlas:{}, anims:{}, cur:'idle', frame:0, fps:24 }
 };
 
 let chart = null;
 let playing = false;
-let activeAnim = 'idle';
 
 /* ---------------- LOG ---------------- */
 const logBox = document.getElementById("log");
@@ -112,7 +110,7 @@ function loadXML(input, who){
     const xml = new DOMParser().parseFromString(r.result,"text/xml");
     chars[who].atlas = {};
     xml.querySelectorAll("SubTexture").forEach(st=>{
-      const name = st.getAttribute("name").split(" ")[0];
+      const name = st.getAttribute("name");
       (chars[who].atlas[name] ??= []).push({
         x:+st.getAttribute("x"),
         y:+st.getAttribute("y"),
@@ -131,6 +129,19 @@ function loadImage(input, who){
   img.src = URL.createObjectURL(input.files[0]);
 }
 
+function loadCharJSON(input, who){
+  const r = new FileReader();
+  r.onload = ()=>{
+    const data = JSON.parse(r.result);
+    chars[who].anims = {};
+    data.animations.forEach(a=>{
+      chars[who].anims[a.name] = a;
+    });
+    log(`${who} character JSON loaded`);
+  };
+  r.readAsText(input.files[0]);
+}
+
 function loadChart(input){
   const r = new FileReader();
   r.onload = ()=>{ chart = JSON.parse(r.result); log("chart loaded"); };
@@ -143,13 +154,22 @@ function loadAudio(input){
   a.onloadedmetadata = ()=>{
     timeLabel.textContent = `0 ms - ${Math.floor(a.duration*1000)} ms`;
   };
+  a.onerror = ()=> log("Audio format not supported by browser");
   a.onended = stopPlayback;
 }
 
 /* ---------------- DRAW ---------------- */
 function drawChar(ctx, c){
-  if(!c.image || !c.atlas[c.anim]) return;
-  const f = c.atlas[c.anim][c.frame % c.atlas[c.anim].length];
+  const anim = c.anims[c.cur];
+  if(!c.image || !anim) return;
+
+  const frames = Object.keys(c.atlas)
+    .filter(k=>k.startsWith(anim.prefix))
+    .sort();
+
+  if(!frames.length) return;
+
+  const f = c.atlas[frames[c.frame % frames.length]][0];
   ctx.clearRect(0,0,300,300);
   ctx.drawImage(c.image,f.x,f.y,f.w,f.h,50,50,f.w*0.5,f.h*0.5);
 }
@@ -164,8 +184,8 @@ function loop(){
     chart.notes?.normal?.forEach(n=>{
       if(Math.abs(n.t - t) < 35){
         const who = n.l < 4 ? chars.player : chars.opponent;
-        who.anim = activeAnim;
-        who.frame = 0;
+        const dir = ["LEFT","DOWN","UP","RIGHT"][n.l % 4];
+        setCharAnim(who, "sing"+dir);
       }
     });
   }
@@ -175,11 +195,17 @@ function loop(){
 }
 requestAnimationFrame(loop);
 
-/* ---------------- CONTROLS ---------------- */
-function setAnim(a){
-  activeAnim = a;
-  chars.player.anim = chars.opponent.anim = a;
-  chars.player.frame = chars.opponent.frame = 0;
+/* ---------------- ANIM CONTROL ---------------- */
+function setCharAnim(c, a){
+  if(c.cur !== a){
+    c.cur = a;
+    c.frame = 0;
+  }
+}
+
+function forceAnim(a){
+  setCharAnim(chars.player,a);
+  setCharAnim(chars.opponent,a);
 }
 
 function startPlayback(){
@@ -192,7 +218,7 @@ function startPlayback(){
 function stopPlayback(){
   playing = false;
   audio.pause();
-  setAnim("idle");
+  forceAnim("idle");
 }
 </script>
 
