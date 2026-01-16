@@ -171,13 +171,18 @@ audio.addEventListener("timeupdate", () => {
 
 // ================== NOTES ==================
 function addNote(lane) {
-  const note = { t: Math.floor(currentTime), d: lane, l: 0, p: [] };
+  const note = [
+    Math.floor(currentTime), // t
+    lane,                    // d
+    0,                       // l
+    []                       // p
+  ];
 
-  chartData.notes.easy.push({ ...note });
-  chartData.notes.normal.push({ ...note });
-  chartData.notes.hard.push({ ...note });
+  chartData.notes.easy.push([...note]);
+  chartData.notes.normal.push([...note]);
+  chartData.notes.hard.push([...note]);
 
-  chartData.notes.normal.sort((a, b) => a.t - b.t);
+  chartData.notes.normal.sort((a, b) => a[0] - b[0]);
 
   syncTextarea();
   drawChart();
@@ -199,16 +204,20 @@ function drawChart() {
   }
 
   for (const n of chartData.notes.normal) {
-    if (n.l <= 0) continue;
+    const t = n[0];
+    const d = n[1];
+    const l = n[2];
 
-    const x = n.d * 110 + 50;
-    const y = centerY - (n.t - currentTime) * SCROLL_MULT;
-    const holdHeight = n.l * SCROLL_MULT;
+    if (l <= 0) continue;
+
+    const x = d * 110 + 50;
+    const y = centerY - (t - currentTime) * SCROLL_MULT;
+    const holdHeight = l * SCROLL_MULT;
     const topY = y - holdHeight;
 
     if (y < 0 || topY > canvas.height) continue;
 
-    const lane = n.d % 4;
+    const lane = d % 4;
     ctx.globalAlpha = 0.6;
     ctx.fillStyle = laneColors[lane];
     ctx.fillRect(x - HOLD_WIDTH / 2, topY, HOLD_WIDTH, holdHeight);
@@ -216,13 +225,16 @@ function drawChart() {
   }
 
   for (const n of chartData.notes.normal) {
-    const x = n.d * 110 + 50;
-    const y = centerY - (n.t - currentTime) * SCROLL_MULT;
+    const t = n[0];
+    const d = n[1];
+
+    const x = d * 110 + 50;
+    const y = centerY - (t - currentTime) * SCROLL_MULT;
 
     if (y < -ARROW_SIZE || y > canvas.height + ARROW_SIZE) continue;
 
-    const lane = n.d % 4;
-    const img = n.d < 4 ? playerImages[lane] : opponentImages[lane];
+    const lane = d % 4;
+    const img = d < 4 ? playerImages[lane] : opponentImages[lane];
 
     if (img.complete && img.naturalWidth) {
       ctx.save();
