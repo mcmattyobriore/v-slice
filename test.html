@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XML SpriteSheet → GIF Preview & Export</title>
+<title>XML SpriteSheet → GIF / Spritesheet Export</title>
 
 <style>
 body {
@@ -70,7 +70,7 @@ input[type="range"] {
 
 <body>
 
-<h3>XML SpriteSheet → GIF Preview & Export</h3>
+<h3>XML SpriteSheet → GIF / Spritesheet Export</h3>
 
 <div class="panel">
   <label>Load XML
@@ -89,6 +89,7 @@ input[type="range"] {
     <button onclick="step(-1)">⟵</button>
     <button onclick="step(1)">⟶</button>
     <button onclick="exportGIF()">💾 Export GIF</button>
+    <button onclick="exportSpritesheet()">💾 Export Spritesheet PNG</button>
   </div>
 
   <div id="info">Frames: 0 | FPS: 12</div>
@@ -102,7 +103,6 @@ input[type="range"] {
 /* ---------- STATE ---------- */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-
 let image = null;
 let frames = [];
 let frameIndex = 0;
@@ -182,23 +182,24 @@ function updateInfo(){
     `Frames: ${frames.length} | FPS: ${fps}`;
 }
 
-/* ---------- EXPORT GIF ---------- */
+/* ---------- EXPORT GIF (FAST) ---------- */
 function exportGIF(){
   if(!frames.length || !image) return alert("Load XML + image first!");
-  
-  const gif = new GIF({
-    workers: 2,
-    quality: 10,
-    width: canvas.width,
-    height: canvas.height
-  });
+
+  // Pre-render all frames into offscreen canvas for speed
+  const offCanvas = document.createElement("canvas");
+  offCanvas.width = canvas.width;
+  offCanvas.height = canvas.height;
+  const offCtx = offCanvas.getContext("2d");
+
+  const gif = new GIF({workers:2, quality:10, width:canvas.width, height:canvas.height});
 
   frames.forEach(f => {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    offCtx.clearRect(0,0,canvas.width,canvas.height);
     const cx = canvas.width/2 - f.fw/2;
     const cy = canvas.height/2 - f.fh/2;
-    ctx.drawImage(image, f.x, f.y, f.w, f.h, cx + f.fx, cy + f.fy, f.w, f.h);
-    gif.addFrame(ctx, {copy:true, delay:1000/fps});
+    offCtx.drawImage(image, f.x, f.y, f.w, f.h, cx+f.fx, cy+f.fy, f.w, f.h);
+    gif.addFrame(offCtx, {copy:true, delay:1000/fps});
   });
 
   gif.on('finished', blob => {
@@ -211,6 +212,37 @@ function exportGIF(){
   });
 
   gif.render();
+}
+
+/* ---------- EXPORT SPRITESHEET PNG ---------- */
+function exportSpritesheet(){
+  if(!frames.length || !image) return alert("Load XML + image first!");
+
+  // Calculate rows/columns for a compact spritesheet
+  const cols = Math.ceil(Math.sqrt(frames.length));
+  const rows = Math.ceil(frames.length / cols);
+  const sprWidth = frames[0].fw;
+  const sprHeight = frames[0].fh;
+
+  const sheetCanvas = document.createElement("canvas");
+  sheetCanvas.width = cols * sprWidth;
+  sheetCanvas.height = rows * sprHeight;
+  const sheetCtx = sheetCanvas.getContext("2d");
+
+  frames.forEach((f, i)=>{
+    const x = (i % cols) * sprWidth;
+    const y = Math.floor(i / cols) * sprHeight;
+    sheetCtx.drawImage(image, f.x, f.y, f.w, f.h, x + f.fx, y + f.fy, f.w, f.h);
+  });
+
+  sheetCanvas.toBlob(blob=>{
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = 'spritesheet.png';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 }
 </script>
 
