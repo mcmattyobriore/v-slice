@@ -6,116 +6,34 @@
 <title>VslicR5 – Character + Chart Preview</title>
 
 <style>
-* {
-  box-sizing: border-box;
-  user-select: none;
-  -webkit-user-select: none;
-}
+* { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+body { margin:0; padding:10px; background:#111; color:#eee; font-family:monospace; }
 
-body {
-  margin: 0;
-  padding: 10px;
-  background: #111;
-  color: #eee;
-  font-family: monospace;
-}
+h3 { margin:4px 0; text-align:center; color:#0f0; }
 
-h3 {
-  margin: 4px 0;
-  text-align: center;
-  color: #0f0;
-}
+.main { display:flex; gap:10px; }
+.left { width:320px; display:flex; flex-direction:column; gap:8px; }
+.right { flex:1; display:flex; flex-direction:column; gap:10px; }
 
-.main {
-  display: flex;
-  gap: 10px;
-}
+.upload { background:#1e1e1e; border:1px solid #444; padding:6px; }
+label { display:block; background:#222; border:1px solid #555; padding:8px; text-align:center; cursor:pointer; margin-bottom:5px; }
 
-.left {
-  width: 300px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+canvas { background:#000; border:1px solid #444; image-rendering:pixelated; }
 
-.right {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+.char-row { display:flex; gap:10px; }
+.char-box { flex:1; text-align:center; }
 
-.upload {
-  background: #1e1e1e;
-  border: 1px solid #444;
-  padding: 6px;
-}
+.controls { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+button { background:#222; border:1px solid #555; color:#fff; width:42px; height:42px; }
+button:active { background:#444; }
 
-label {
-  display: block;
-  background: #222;
-  border: 1px solid #555;
-  padding: 8px;
-  text-align: center;
-  cursor: pointer;
-  margin-bottom: 5px;
-}
+textarea { width:100%; height:140px; background:#1e1e1e; color:#0f0; border:1px solid #444; font-size:11px; }
 
-canvas {
-  background: #000;
-  border: 1px solid #444;
-  image-rendering: pixelated;
-}
+#timeLabel { text-align:center; font-size:12px; }
 
-.char-row {
-  display: flex;
-  gap: 10px;
-}
-
-.char-box {
-  flex: 1;
-  text-align: center;
-}
-
-.controls {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-button {
-  background: #222;
-  border: 1px solid #555;
-  color: #fff;
-  width: 42px;
-  height: 42px;
-  font-size: 16px;
-}
-
-button:active { background: #444; }
-
-textarea {
-  width: 100%;
-  height: 140px;
-  background: #1e1e1e;
-  color: #0f0;
-  border: 1px solid #444;
-  font-size: 11px;
-}
-
-#timeline {
-  height: 60px;
-}
-
-#timeLabel {
-  text-align: center;
-  font-size: 12px;
-}
-
-@media (max-width: 800px) {
-  .main { flex-direction: column; }
-  .left { width: 100%; }
+@media (max-width:800px){
+  .main { flex-direction:column; }
+  .left { width:100%; }
 }
 </style>
 </head>
@@ -126,26 +44,24 @@ textarea {
 
 <div class="main">
 
-<!-- LEFT -->
 <div class="left">
   <div class="upload">
     <strong>PLAYER</strong>
-    <label>XML<input type="file" hidden accept=".xml" onchange="loadXML(this,'player')"></label>
-    <label>Image<input type="file" hidden accept=".png,.jpg,.webp" onchange="loadImage(this,'player')"></label>
+    <label>Player XML<input hidden type="file" accept=".xml" onchange="loadXML(this,'player')"></label>
+    <label>Player Image<input hidden type="file" accept=".png,.jpg,.webp" onchange="loadImage(this,'player')"></label>
 
     <strong>OPPONENT</strong>
-    <label>XML<input type="file" hidden accept=".xml" onchange="loadXML(this,'opponent')"></label>
-    <label>Image<input type="file" hidden accept=".png,.jpg,.webp" onchange="loadImage(this,'opponent')"></label>
+    <label>Opponent XML<input hidden type="file" accept=".xml" onchange="loadXML(this,'opponent')"></label>
+    <label>Opponent Image<input hidden type="file" accept=".png,.jpg,.webp" onchange="loadImage(this,'opponent')"></label>
 
     <strong>CHART</strong>
-    <label>Chart JSON<input type="file" hidden accept=".json" onchange="loadChart(this)"></label>
-    <label>Audio<input type="file" hidden accept="audio/*" onchange="loadAudio(this)"></label>
+    <label>Chart JSON<input hidden type="file" accept=".json" onchange="loadChart(this)"></label>
+    <label>Music<input hidden type="file" accept="audio/*" onchange="loadAudio(this)"></label>
   </div>
 
   <textarea id="log" placeholder="log..."></textarea>
 </div>
 
-<!-- RIGHT -->
 <div class="right">
   <div class="char-row">
     <div class="char-box">
@@ -158,15 +74,14 @@ textarea {
     </div>
   </div>
 
-  <canvas id="timeline" width="900" height="60"></canvas>
   <div id="timeLabel">0 ms - 0 ms</div>
 
   <div class="controls">
-    <button onclick="manualAnim('idle')">I</button>
-    <button onclick="manualAnim('singLEFT')">←</button>
-    <button onclick="manualAnim('singDOWN')">↓</button>
-    <button onclick="manualAnim('singUP')">↑</button>
-    <button onclick="manualAnim('singRIGHT')">→</button>
+    <button onclick="setAnim('idle')">I</button>
+    <button onclick="setAnim('singLEFT')">←</button>
+    <button onclick="setAnim('singDOWN')">↓</button>
+    <button onclick="setAnim('singUP')">↑</button>
+    <button onclick="setAnim('singRIGHT')">→</button>
     <button onclick="startPlayback()">▶</button>
     <button onclick="stopPlayback()">■</button>
   </div>
@@ -176,28 +91,29 @@ textarea {
 <audio id="audio"></audio>
 
 <script>
-/* ---------- STATE ---------- */
+/* ---------------- STATE ---------------- */
 const chars = {
   player: { atlas:{}, image:null, anim:'idle', frame:0 },
-  opponent:{ atlas:{}, image:null, anim:'idle', frame:0 }
+  opponent: { atlas:{}, image:null, anim:'idle', frame:0 }
 };
 
 let chart = null;
 let playing = false;
+let activeAnim = 'idle';
 
-/* ---------- LOG ---------- */
-const log = t => logEl.value += t + "\n";
-const logEl = document.getElementById("log");
+/* ---------------- LOG ---------------- */
+const logBox = document.getElementById("log");
+const log = t => logBox.value += t + "\n";
 
-/* ---------- LOADERS ---------- */
+/* ---------------- LOADERS ---------------- */
 function loadXML(input, who){
   const r = new FileReader();
   r.onload = () => {
     const xml = new DOMParser().parseFromString(r.result,"text/xml");
     chars[who].atlas = {};
     xml.querySelectorAll("SubTexture").forEach(st=>{
-      const n = st.getAttribute("name").split(" ")[0];
-      (chars[who].atlas[n] ??= []).push({
+      const name = st.getAttribute("name").split(" ")[0];
+      (chars[who].atlas[name] ??= []).push({
         x:+st.getAttribute("x"),
         y:+st.getAttribute("y"),
         w:+st.getAttribute("width"),
@@ -222,16 +138,15 @@ function loadChart(input){
 }
 
 function loadAudio(input){
-  const a = document.getElementById("audio");
+  const a = audio;
   a.src = URL.createObjectURL(input.files[0]);
   a.onloadedmetadata = ()=>{
-    document.getElementById("timeLabel").textContent =
-      `0 ms - ${Math.floor(a.duration*1000)} ms`;
+    timeLabel.textContent = `0 ms - ${Math.floor(a.duration*1000)} ms`;
   };
   a.onended = stopPlayback;
 }
 
-/* ---------- DRAW ---------- */
+/* ---------------- DRAW ---------------- */
 function drawChar(ctx, c){
   if(!c.image || !c.atlas[c.anim]) return;
   const f = c.atlas[c.anim][c.frame % c.atlas[c.anim].length];
@@ -239,30 +154,18 @@ function drawChar(ctx, c){
   ctx.drawImage(c.image,f.x,f.y,f.w,f.h,50,50,f.w*0.5,f.h*0.5);
 }
 
-function drawTimeline(){
-  const ctx = timeline.getContext("2d");
-  ctx.clearRect(0,0,900,60);
-  if(!chart || !audio.duration) return;
-  chart.notes?.normal?.forEach(n=>{
-    const x = (n.t/(audio.duration*1000))*900;
-    ctx.fillStyle = n.l < 4 ? "#0af" : "#f44";
-    ctx.fillRect(x,10,4,40);
-  });
-}
-
-/* ---------- LOOP ---------- */
+/* ---------------- LOOP ---------------- */
 function loop(){
-  drawChar(oppCanvas.getContext("2d"), chars.opponent);
   drawChar(plrCanvas.getContext("2d"), chars.player);
+  drawChar(oppCanvas.getContext("2d"), chars.opponent);
 
   if(playing && chart){
-    const t = audio.currentTime*1000;
-    chart.notes.normal.forEach(n=>{
-      if(Math.abs(n.t - t) < 40){
-        const who = n.l < 4 ? "player" : "opponent";
-        const dir = ["LEFT","DOWN","UP","RIGHT"][n.l%4];
-        chars[who].anim = "sing"+dir;
-        chars[who].frame = 0;
+    const t = audio.currentTime * 1000;
+    chart.notes?.normal?.forEach(n=>{
+      if(Math.abs(n.t - t) < 35){
+        const who = n.l < 4 ? chars.player : chars.opponent;
+        who.anim = activeAnim;
+        who.frame = 0;
       }
     });
   }
@@ -272,24 +175,24 @@ function loop(){
 }
 requestAnimationFrame(loop);
 
-/* ---------- CONTROLS ---------- */
-function manualAnim(a){
+/* ---------------- CONTROLS ---------------- */
+function setAnim(a){
+  activeAnim = a;
   chars.player.anim = chars.opponent.anim = a;
   chars.player.frame = chars.opponent.frame = 0;
 }
 
 function startPlayback(){
-  if(!chart) return;
+  if(!chart || !audio.src) return;
   audio.currentTime = 0;
   audio.play();
   playing = true;
-  drawTimeline();
 }
 
 function stopPlayback(){
   playing = false;
   audio.pause();
-  manualAnim("idle");
+  setAnim("idle");
 }
 </script>
 
