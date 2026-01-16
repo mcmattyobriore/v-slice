@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>VslicR5 – Character Preview</title>
+<title>VslicR5 – Character + Chart Preview</title>
 
 <style>
 * {
@@ -70,7 +70,6 @@ canvas {
 .char-row {
   display: flex;
   gap: 10px;
-  justify-content: space-between;
 }
 
 .char-box {
@@ -94,17 +93,24 @@ button {
   font-size: 16px;
 }
 
-button:active {
-  background: #444;
-}
+button:active { background: #444; }
 
 textarea {
   width: 100%;
-  height: 160px;
+  height: 140px;
   background: #1e1e1e;
   color: #0f0;
   border: 1px solid #444;
   font-size: 11px;
+}
+
+#timeline {
+  height: 60px;
+}
+
+#timeLabel {
+  text-align: center;
+  font-size: 12px;
 }
 
 @media (max-width: 800px) {
@@ -119,181 +125,171 @@ textarea {
 <h3>VslicR5 – Character + Chart Preview</h3>
 
 <div class="main">
-  <!-- LEFT -->
-  <div class="left">
-    <div class="upload">
-      <label>
-        Upload XML
-        <input type="file" accept=".xml" hidden onchange="loadXML(this)">
-      </label>
 
-      <label>
-        Upload Image / Spritesheet
-        <input type="file" accept=".png,.jpg,.webp" hidden onchange="loadImage(this)">
-      </label>
+<!-- LEFT -->
+<div class="left">
+  <div class="upload">
+    <strong>PLAYER</strong>
+    <label>XML<input type="file" hidden accept=".xml" onchange="loadXML(this,'player')"></label>
+    <label>Image<input type="file" hidden accept=".png,.jpg,.webp" onchange="loadImage(this,'player')"></label>
 
-      <label>
-        Upload GIF (auto-split)
-        <input type="file" accept=".gif" hidden onchange="loadGIF(this)">
-      </label>
+    <strong>OPPONENT</strong>
+    <label>XML<input type="file" hidden accept=".xml" onchange="loadXML(this,'opponent')"></label>
+    <label>Image<input type="file" hidden accept=".png,.jpg,.webp" onchange="loadImage(this,'opponent')"></label>
 
-      <label>
-        Upload Chart JSON
-        <input type="file" accept=".json" hidden onchange="loadChart(this)">
-      </label>
-    </div>
-
-    <textarea id="log" placeholder="debug log..."></textarea>
+    <strong>CHART</strong>
+    <label>Chart JSON<input type="file" hidden accept=".json" onchange="loadChart(this)"></label>
+    <label>Audio<input type="file" hidden accept="audio/*" onchange="loadAudio(this)"></label>
   </div>
 
-  <!-- RIGHT -->
-  <div class="right">
-    <div class="char-row">
-      <div class="char-box">
-        <h3>OPPONENT</h3>
-        <canvas id="oppCanvas" width="300" height="300"></canvas>
-      </div>
-      <div class="char-box">
-        <h3>PLAYER</h3>
-        <canvas id="plrCanvas" width="300" height="300"></canvas>
-      </div>
-    </div>
-
-    <div class="controls">
-      <button onclick="playAnim('idle')">I</button>
-      <button onclick="playAnim('singLEFT')">←</button>
-      <button onclick="playAnim('singDOWN')">↓</button>
-      <button onclick="playAnim('singUP')">↑</button>
-      <button onclick="playAnim('singRIGHT')">→</button>
-      <button onclick="startChart()">▶</button>
-      <button onclick="stopChart()">■</button>
-    </div>
-  </div>
+  <textarea id="log" placeholder="log..."></textarea>
 </div>
 
+<!-- RIGHT -->
+<div class="right">
+  <div class="char-row">
+    <div class="char-box">
+      <h3>OPPONENT</h3>
+      <canvas id="oppCanvas" width="300" height="300"></canvas>
+    </div>
+    <div class="char-box">
+      <h3>PLAYER</h3>
+      <canvas id="plrCanvas" width="300" height="300"></canvas>
+    </div>
+  </div>
+
+  <canvas id="timeline" width="900" height="60"></canvas>
+  <div id="timeLabel">0 ms - 0 ms</div>
+
+  <div class="controls">
+    <button onclick="manualAnim('idle')">I</button>
+    <button onclick="manualAnim('singLEFT')">←</button>
+    <button onclick="manualAnim('singDOWN')">↓</button>
+    <button onclick="manualAnim('singUP')">↑</button>
+    <button onclick="manualAnim('singRIGHT')">→</button>
+    <button onclick="startPlayback()">▶</button>
+    <button onclick="stopPlayback()">■</button>
+  </div>
+</div>
+</div>
+
+<audio id="audio"></audio>
+
 <script>
-/* ------------------ CORE STATE ------------------ */
-let atlas = {};
-let image = null;
+/* ---------- STATE ---------- */
+const chars = {
+  player: { atlas:{}, image:null, anim:'idle', frame:0 },
+  opponent:{ atlas:{}, image:null, anim:'idle', frame:0 }
+};
+
 let chart = null;
-let playingChart = false;
-let chartStart = 0;
-let currentAnim = 'idle';
-let frameIndex = 0;
-let lastFrameTime = 0;
+let playing = false;
 
-/* ------------------ LOG ------------------ */
-function log(t) {
-  document.getElementById('log').value += t + "\n";
-}
+/* ---------- LOG ---------- */
+const log = t => logEl.value += t + "\n";
+const logEl = document.getElementById("log");
 
-/* ------------------ XML ------------------ */
-function loadXML(input) {
+/* ---------- LOADERS ---------- */
+function loadXML(input, who){
   const r = new FileReader();
   r.onload = () => {
-    const xml = new DOMParser().parseFromString(r.result, "text/xml");
-    atlas = {};
-    xml.querySelectorAll("SubTexture").forEach(st => {
-      const name = st.getAttribute("name").split(" ")[0];
-      if (!atlas[name]) atlas[name] = [];
-      atlas[name].push({
-        x: +st.getAttribute("x"),
-        y: +st.getAttribute("y"),
-        w: +st.getAttribute("width"),
-        h: +st.getAttribute("height")
+    const xml = new DOMParser().parseFromString(r.result,"text/xml");
+    chars[who].atlas = {};
+    xml.querySelectorAll("SubTexture").forEach(st=>{
+      const n = st.getAttribute("name").split(" ")[0];
+      (chars[who].atlas[n] ??= []).push({
+        x:+st.getAttribute("x"),
+        y:+st.getAttribute("y"),
+        w:+st.getAttribute("width"),
+        h:+st.getAttribute("height")
       });
     });
-    log("XML loaded");
+    log(`${who} XML loaded`);
   };
   r.readAsText(input.files[0]);
 }
 
-/* ------------------ IMAGE ------------------ */
-function loadImage(input) {
+function loadImage(input, who){
   const img = new Image();
-  img.onload = () => {
-    image = img;
-    log("Image loaded");
-  };
+  img.onload = ()=>{ chars[who].image = img; log(`${who} image loaded`); };
   img.src = URL.createObjectURL(input.files[0]);
 }
 
-/* ------------------ GIF → SPRITESHEET ------------------ */
-function loadGIF(input) {
-  const gif = document.createElement("img");
-  gif.src = URL.createObjectURL(input.files[0]);
-
-  gif.onload = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = gif.width;
-    canvas.height = gif.height;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(gif, 0, 0);
-    image = canvas;
-    atlas["idle"] = [{ x:0, y:0, w:gif.width, h:gif.height }];
-    log("GIF converted to static spritesheet");
-  };
-}
-
-/* ------------------ CHART ------------------ */
-function loadChart(input) {
+function loadChart(input){
   const r = new FileReader();
-  r.onload = () => {
-    chart = JSON.parse(r.result);
-    log("Chart loaded");
-  };
+  r.onload = ()=>{ chart = JSON.parse(r.result); log("chart loaded"); };
   r.readAsText(input.files[0]);
 }
 
-/* ------------------ ANIMATION ------------------ */
-function playAnim(name) {
-  currentAnim = name;
-  frameIndex = 0;
+function loadAudio(input){
+  const a = document.getElementById("audio");
+  a.src = URL.createObjectURL(input.files[0]);
+  a.onloadedmetadata = ()=>{
+    document.getElementById("timeLabel").textContent =
+      `0 ms - ${Math.floor(a.duration*1000)} ms`;
+  };
+  a.onended = stopPlayback;
 }
 
-function drawChar(ctx, anim) {
-  if (!image || !atlas[anim]) return;
-  const frame = atlas[anim][frameIndex % atlas[anim].length];
+/* ---------- DRAW ---------- */
+function drawChar(ctx, c){
+  if(!c.image || !c.atlas[c.anim]) return;
+  const f = c.atlas[c.anim][c.frame % c.atlas[c.anim].length];
   ctx.clearRect(0,0,300,300);
-  ctx.drawImage(
-    image,
-    frame.x, frame.y, frame.w, frame.h,
-    50, 50, frame.w * 0.5, frame.h * 0.5
-  );
+  ctx.drawImage(c.image,f.x,f.y,f.w,f.h,50,50,f.w*0.5,f.h*0.5);
 }
 
-function loop(ts) {
-  if (ts - lastFrameTime > 100) {
-    frameIndex++;
-    lastFrameTime = ts;
-  }
+function drawTimeline(){
+  const ctx = timeline.getContext("2d");
+  ctx.clearRect(0,0,900,60);
+  if(!chart || !audio.duration) return;
+  chart.notes?.normal?.forEach(n=>{
+    const x = (n.t/(audio.duration*1000))*900;
+    ctx.fillStyle = n.l < 4 ? "#0af" : "#f44";
+    ctx.fillRect(x,10,4,40);
+  });
+}
 
-  drawChar(document.getElementById("oppCanvas").getContext("2d"), currentAnim);
-  drawChar(document.getElementById("plrCanvas").getContext("2d"), currentAnim);
+/* ---------- LOOP ---------- */
+function loop(){
+  drawChar(oppCanvas.getContext("2d"), chars.opponent);
+  drawChar(plrCanvas.getContext("2d"), chars.player);
 
-  if (playingChart && chart) {
-    const t = ts - chartStart;
-    chart.notes?.normal?.forEach(n => {
-      if (Math.abs(n.t - t) < 50) {
-        playAnim(n.l < 4 ? "singLEFT" : "singRIGHT");
+  if(playing && chart){
+    const t = audio.currentTime*1000;
+    chart.notes.normal.forEach(n=>{
+      if(Math.abs(n.t - t) < 40){
+        const who = n.l < 4 ? "player" : "opponent";
+        const dir = ["LEFT","DOWN","UP","RIGHT"][n.l%4];
+        chars[who].anim = "sing"+dir;
+        chars[who].frame = 0;
       }
     });
   }
 
+  Object.values(chars).forEach(c=>c.frame++);
   requestAnimationFrame(loop);
 }
-
 requestAnimationFrame(loop);
 
-/* ------------------ CHART PLAYBACK ------------------ */
-function startChart() {
-  playingChart = true;
-  chartStart = performance.now();
+/* ---------- CONTROLS ---------- */
+function manualAnim(a){
+  chars.player.anim = chars.opponent.anim = a;
+  chars.player.frame = chars.opponent.frame = 0;
 }
 
-function stopChart() {
-  playingChart = false;
-  playAnim("idle");
+function startPlayback(){
+  if(!chart) return;
+  audio.currentTime = 0;
+  audio.play();
+  playing = true;
+  drawTimeline();
+}
+
+function stopPlayback(){
+  playing = false;
+  audio.pause();
+  manualAnim("idle");
 }
 </script>
 
