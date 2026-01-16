@@ -3,83 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XML SpriteSheet → GIF / Spritesheet Export</title>
+<title>XML SpriteSheet → Individual Frames ZIP</title>
 
 <style>
 body {
-  margin: 0;
-  padding: 10px;
-  background: #111;
-  color: #0f0;
-  font-family: monospace;
+  margin:0;
+  padding:10px;
+  background:#111;
+  color:#0f0;
+  font-family:monospace;
 }
-
-h3 { text-align: center; margin: 6px 0; }
-
+h3 { text-align:center; margin:6px 0; }
 .panel {
-  max-width: 520px;
-  margin: auto;
-  background: #1b1b1b;
-  border: 1px solid #444;
-  padding: 10px;
+  max-width:520px;
+  margin:auto;
+  background:#1b1b1b;
+  border:1px solid #444;
+  padding:10px;
 }
-
 label {
-  display: block;
-  background: #222;
-  border: 1px solid #555;
-  padding: 8px;
-  margin-bottom: 6px;
-  text-align: center;
-  cursor: pointer;
+  display:block;
+  background:#222;
+  border:1px solid #555;
+  padding:8px;
+  margin-bottom:6px;
+  text-align:center;
+  cursor:pointer;
 }
-
 canvas {
-  display: block;
-  margin: 10px auto;
-  background: #000;
-  border: 1px solid #555;
-  image-rendering: pixelated;
+  display:block;
+  margin:10px auto;
+  background:#000;
+  border:1px solid #555;
+  image-rendering:pixelated;
 }
-
-.controls {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-button {
-  background: #222;
-  border: 1px solid #555;
-  color: #fff;
-  padding: 6px 10px;
-}
-
-input[type="range"] {
-  width: 100%;
-}
-
-#info {
-  font-size: 12px;
-  text-align: center;
-  margin-top: 6px;
-}
+.controls { display:flex; justify-content:center; gap:6px; flex-wrap:wrap; }
+button { background:#222; border:1px solid #555; color:#fff; padding:6px 10px; }
 </style>
 </head>
 
 <body>
 
-<h3>XML SpriteSheet → GIF / Spritesheet Export</h3>
+<h3>XML SpriteSheet → Frames ZIP</h3>
 
 <div class="panel">
-  <label>Load XML
-    <input hidden type="file" accept=".xml" onchange="loadXML(this)">
-  </label>
-
-  <label>Load SpriteSheet Image
-    <input hidden type="file" accept="image/*" onchange="loadImage(this)">
-  </label>
+  <label>Load XML<input hidden type="file" accept=".xml" onchange="loadXML(this)"></label>
+  <label>Load SpriteSheet<input hidden type="file" accept="image/*" onchange="loadImage(this)"></label>
 
   <canvas id="canvas" width="600" height="600"></canvas>
 
@@ -88,61 +57,56 @@ input[type="range"] {
     <button onclick="pause()">⏸</button>
     <button onclick="step(-1)">⟵</button>
     <button onclick="step(1)">⟶</button>
-    <button onclick="exportGIF()">💾 Export GIF</button>
-    <button onclick="exportSpritesheet()">💾 Export Spritesheet PNG</button>
+    <button onclick="exportFrames()">💾 Export Frames ZIP</button>
   </div>
 
-  <div id="info">Frames: 0 | FPS: 12</div>
-  <input type="range" min="1" max="30" value="12" oninput="setFPS(this.value)">
+  <div id="info">Frames: 0</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.0/dist/jszip.min.js"></script>
 
 <script>
-/* ---------- STATE ---------- */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+
 let image = null;
 let frames = [];
 let frameIndex = 0;
 let playing = false;
-let fps = 12;
-let lastTime = 0;
 
-/* ---------- LOAD XML ---------- */
+/* ---------- XML & Image Load ---------- */
 function loadXML(input){
   const reader = new FileReader();
   reader.onload = () => {
-    const xml = new DOMParser().parseFromString(reader.result, "text/xml");
+    const xml = new DOMParser().parseFromString(reader.result,"text/xml");
     frames = [];
-    xml.querySelectorAll("SubTexture").forEach(st => {
+    xml.querySelectorAll("SubTexture").forEach(st=>{
       frames.push({
         name: st.getAttribute("name"),
-        x: +st.getAttribute("x"),
-        y: +st.getAttribute("y"),
-        w: +st.getAttribute("width"),
-        h: +st.getAttribute("height"),
-        fx: +st.getAttribute("frameX"),
-        fy: +st.getAttribute("frameY"),
-        fw: +st.getAttribute("frameWidth"),
-        fh: +st.getAttribute("frameHeight")
+        x:+st.getAttribute("x"),
+        y:+st.getAttribute("y"),
+        w:+st.getAttribute("width"),
+        h:+st.getAttribute("height"),
+        fx:+st.getAttribute("frameX"),
+        fy:+st.getAttribute("frameY"),
+        fw:+st.getAttribute("frameWidth"),
+        fh:+st.getAttribute("frameHeight")
       });
     });
-    frameIndex = 0;
+    frameIndex=0;
     updateInfo();
+    draw();
   };
   reader.readAsText(input.files[0]);
 }
 
-/* ---------- LOAD IMAGE ---------- */
 function loadImage(input){
   image = new Image();
   image.onload = () => draw();
   image.src = URL.createObjectURL(input.files[0]);
 }
 
-/* ---------- DRAW FRAME ---------- */
+/* ---------- DRAW ---------- */
 function draw(){
   if(!image || !frames.length) return;
   const f = frames[frameIndex];
@@ -152,17 +116,16 @@ function draw(){
   ctx.drawImage(
     image,
     f.x, f.y, f.w, f.h,
-    cx + f.fx, cy + f.fy,
+    cx+f.fx, cy+f.fy,
     f.w, f.h
   );
 }
 
 /* ---------- LOOP ---------- */
 function loop(time){
-  if(playing && time - lastTime > 1000 / fps){
-    frameIndex = (frameIndex + 1) % frames.length;
+  if(playing){
+    frameIndex = (frameIndex+1)%frames.length;
     draw();
-    lastTime = time;
   }
   requestAnimationFrame(loop);
 }
@@ -171,77 +134,39 @@ requestAnimationFrame(loop);
 /* ---------- CONTROLS ---------- */
 function play(){ playing = true; }
 function pause(){ playing = false; }
-function step(dir){
-  playing = false;
-  frameIndex = (frameIndex + dir + frames.length) % frames.length;
-  draw();
-}
-function setFPS(v){ fps = +v; updateInfo(); }
-function updateInfo(){
-  document.getElementById("info").textContent =
-    `Frames: ${frames.length} | FPS: ${fps}`;
-}
+function step(dir){ playing=false; frameIndex=(frameIndex+dir+frames.length)%frames.length; draw(); }
+function updateInfo(){ document.getElementById("info").textContent = `Frames: ${frames.length}`; }
 
-/* ---------- EXPORT GIF (FAST) ---------- */
-function exportGIF(){
-  if(!frames.length || !image) return alert("Load XML + image first!");
+/* ---------- EXPORT INDIVIDUAL FRAMES ---------- */
+function exportFrames(){
+  if(!image || !frames.length) return alert("Load XML + image first!");
 
-  // Pre-render all frames into offscreen canvas for speed
-  const offCanvas = document.createElement("canvas");
-  offCanvas.width = canvas.width;
-  offCanvas.height = canvas.height;
-  const offCtx = offCanvas.getContext("2d");
+  const zip = new JSZip();
+  const tmpCanvas = document.createElement("canvas");
+  const tmpCtx = tmpCanvas.getContext("2d");
 
-  const gif = new GIF({workers:2, quality:10, width:canvas.width, height:canvas.height});
+  frames.forEach((f,i)=>{
+    tmpCanvas.width = f.fw;
+    tmpCanvas.height = f.fh;
+    tmpCtx.clearRect(0,0,tmpCanvas.width,tmpCanvas.height);
+    tmpCtx.drawImage(image, f.x, f.y, f.w, f.h, -f.fx, -f.fy, f.w, f.h);
 
-  frames.forEach(f => {
-    offCtx.clearRect(0,0,canvas.width,canvas.height);
-    const cx = canvas.width/2 - f.fw/2;
-    const cy = canvas.height/2 - f.fh/2;
-    offCtx.drawImage(image, f.x, f.y, f.w, f.h, cx+f.fx, cy+f.fy, f.w, f.h);
-    gif.addFrame(offCtx, {copy:true, delay:1000/fps});
-  });
+    // Save frame to PNG blob
+    tmpCanvas.toBlob(blob=>{
+      const name = i.toString().padStart(4,"0") + ".png";
+      zip.file(name, blob);
 
-  gif.on('finished', blob => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'animation.gif';
-    a.click();
-    URL.revokeObjectURL(url);
-  });
-
-  gif.render();
-}
-
-/* ---------- EXPORT SPRITESHEET PNG ---------- */
-function exportSpritesheet(){
-  if(!frames.length || !image) return alert("Load XML + image first!");
-
-  // Calculate rows/columns for a compact spritesheet
-  const cols = Math.ceil(Math.sqrt(frames.length));
-  const rows = Math.ceil(frames.length / cols);
-  const sprWidth = frames[0].fw;
-  const sprHeight = frames[0].fh;
-
-  const sheetCanvas = document.createElement("canvas");
-  sheetCanvas.width = cols * sprWidth;
-  sheetCanvas.height = rows * sprHeight;
-  const sheetCtx = sheetCanvas.getContext("2d");
-
-  frames.forEach((f, i)=>{
-    const x = (i % cols) * sprWidth;
-    const y = Math.floor(i / cols) * sprHeight;
-    sheetCtx.drawImage(image, f.x, f.y, f.w, f.h, x + f.fx, y + f.fy, f.w, f.h);
-  });
-
-  sheetCanvas.toBlob(blob=>{
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = 'spritesheet.png';
-    a.click();
-    URL.revokeObjectURL(url);
+      // If last frame, generate ZIP
+      if(i === frames.length-1){
+        zip.generateAsync({type:"blob"}).then(content=>{
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(content);
+          a.download = "frames.zip";
+          a.click();
+          URL.revokeObjectURL(a.href);
+        });
+      }
+    }, "image/png");
   });
 }
 </script>
