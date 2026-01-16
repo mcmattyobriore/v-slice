@@ -3,45 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XML SpriteSheet → Individual Frames ZIP</title>
-
+<title>XML SpriteSheet → Frames ZIP</title>
 <style>
-body {
-  margin:0;
-  padding:10px;
-  background:#111;
-  color:#0f0;
-  font-family:monospace;
-}
+body { margin:0; padding:10px; background:#111; color:#0f0; font-family:monospace; }
 h3 { text-align:center; margin:6px 0; }
-.panel {
-  max-width:520px;
-  margin:auto;
-  background:#1b1b1b;
-  border:1px solid #444;
-  padding:10px;
-}
-label {
-  display:block;
-  background:#222;
-  border:1px solid #555;
-  padding:8px;
-  margin-bottom:6px;
-  text-align:center;
-  cursor:pointer;
-}
-canvas {
-  display:block;
-  margin:10px auto;
-  background:#000;
-  border:1px solid #555;
-  image-rendering:pixelated;
-}
+.panel { max-width:520px; margin:auto; background:#1b1b1b; border:1px solid #444; padding:10px; }
+label { display:block; background:#222; border:1px solid #555; padding:8px; margin-bottom:6px; text-align:center; cursor:pointer; }
+canvas { display:block; margin:10px auto; background:#000; border:1px solid #555; image-rendering:pixelated; }
 .controls { display:flex; justify-content:center; gap:6px; flex-wrap:wrap; }
 button { background:#222; border:1px solid #555; color:#fff; padding:6px 10px; }
 </style>
 </head>
-
 <body>
 
 <h3>XML SpriteSheet → Frames ZIP</h3>
@@ -74,7 +46,7 @@ let frames = [];
 let frameIndex = 0;
 let playing = false;
 
-/* ---------- XML & Image Load ---------- */
+/* ---------- LOAD XML & IMAGE ---------- */
 function loadXML(input){
   const reader = new FileReader();
   reader.onload = () => {
@@ -102,7 +74,7 @@ function loadXML(input){
 
 function loadImage(input){
   image = new Image();
-  image.onload = () => draw();
+  image.onload = draw;
   image.src = URL.createObjectURL(input.files[0]);
 }
 
@@ -113,18 +85,13 @@ function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   const cx = canvas.width/2 - f.fw/2;
   const cy = canvas.height/2 - f.fh/2;
-  ctx.drawImage(
-    image,
-    f.x, f.y, f.w, f.h,
-    cx+f.fx, cy+f.fy,
-    f.w, f.h
-  );
+  ctx.drawImage(image, f.x, f.y, f.w, f.h, cx+f.fx, cy+f.fy, f.w, f.h);
 }
 
-/* ---------- LOOP ---------- */
-function loop(time){
+/* ---------- ANIMATION LOOP ---------- */
+function loop(){
   if(playing){
-    frameIndex = (frameIndex+1)%frames.length;
+    frameIndex = (frameIndex+1) % frames.length;
     draw();
   }
   requestAnimationFrame(loop);
@@ -137,37 +104,34 @@ function pause(){ playing = false; }
 function step(dir){ playing=false; frameIndex=(frameIndex+dir+frames.length)%frames.length; draw(); }
 function updateInfo(){ document.getElementById("info").textContent = `Frames: ${frames.length}`; }
 
-/* ---------- EXPORT INDIVIDUAL FRAMES ---------- */
-function exportFrames(){
+/* ---------- EXPORT INDIVIDUAL FRAMES AS ZIP ---------- */
+async function exportFrames(){
   if(!image || !frames.length) return alert("Load XML + image first!");
-
+  
   const zip = new JSZip();
   const tmpCanvas = document.createElement("canvas");
   const tmpCtx = tmpCanvas.getContext("2d");
 
-  frames.forEach((f,i)=>{
+  // Pre-render all frames sequentially
+  for(let i=0; i<frames.length; i++){
+    const f = frames[i];
     tmpCanvas.width = f.fw;
     tmpCanvas.height = f.fh;
     tmpCtx.clearRect(0,0,tmpCanvas.width,tmpCanvas.height);
     tmpCtx.drawImage(image, f.x, f.y, f.w, f.h, -f.fx, -f.fy, f.w, f.h);
+    
+    const blob = await new Promise(res => tmpCanvas.toBlob(res, "image/png"));
+    const name = i.toString().padStart(4,"0") + ".png";
+    zip.file(name, blob);
+  }
 
-    // Save frame to PNG blob
-    tmpCanvas.toBlob(blob=>{
-      const name = i.toString().padStart(4,"0") + ".png";
-      zip.file(name, blob);
-
-      // If last frame, generate ZIP
-      if(i === frames.length-1){
-        zip.generateAsync({type:"blob"}).then(content=>{
-          const a = document.createElement("a");
-          a.href = URL.createObjectURL(content);
-          a.download = "frames.zip";
-          a.click();
-          URL.revokeObjectURL(a.href);
-        });
-      }
-    }, "image/png");
-  });
+  // Generate ZIP and trigger download
+  const content = await zip.generateAsync({type:"blob"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(content);
+  a.download = "frames.zip";
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 </script>
 
