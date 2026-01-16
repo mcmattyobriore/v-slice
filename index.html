@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>VslicR5 - Mobile Support Update</title>
-<link rel="shortcut icon" type="image/png" href="favicon.png">
-<link rel="stylesheet" href="../system/css/stylish.css">
+<link rel="shortcut icon" type="image/png" href="system/icons/favicon.png">
+<link rel="stylesheet" href="system/css/stylish.css">
 <!-- Enable standalone (fullscreen) mode on iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -217,15 +217,15 @@
     onclick="toggleDashboard()"
   >
   <div id="dashboard-menu">
-    <a href="ogg.html">OGG Converter</a>
-    <a href="xml.html">XML Viewer</a>
-    <a href="test.html">Test Page</a>
+    <a href="system/pages/ogg/index.html">OGG Converter</a>
+    <a href="system/pages/xml/index.html">XML Viewer</a>
+    <a href="system/pages/test/index.html">Test Page</a>
   </div>
 </div>
 
 <div class="logo-container" id="logoWrapper">
   <img 
-    src="logo.png" 
+    src="system/icons/logo.png" 
     alt="VslicR5 Logo" 
     title="click me to hide:)" 
     onclick="this.parentElement.style.display='none'"
@@ -240,16 +240,16 @@
 
     <div class="row">
       <label class="upload-btn" title="import your json charts here!">
-        <img src="import.png" alt="import JSON" />
+        <img src="system/images/import.png" alt="import JSON" />
         <input type="file" accept=".json" onchange="importJSON(this)" hidden />
       </label>
       <label class="upload-btn" title="import your ogg files here!">
-        <img src="music.png" alt="import Audio" />
+        <img src="system/images/music.png" alt="import Audio" />
         <input type="file" accept=".ogg,.wav,.mp3,audio/*" onchange="importAudio(this)" hidden />
       </label>
-      <button onclick="playAudio()" title="play the ogg file"><img src="play.png"/></button>
-      <button onclick="pauseAudio()" title="pause the ogg file"><img src="pause.png"/></button>
-      <button onclick="stopAudio()" title="go back to 0ms"><img src="stop.png"/></button>
+      <button onclick="playAudio()" title="play the ogg file"><img src="system/images/play.png"/></button>
+      <button onclick="pauseAudio()" title="pause the ogg file"><img src="system/images/pause.png"/></button>
+      <button onclick="stopAudio()" title="go back to 0ms"><img src="system/images/stop.png"/></button>
     </div>
 
     <div class="row">
@@ -287,9 +287,9 @@
         <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_closed.png" alt="Trash"/>
       </button>
       <button title="save your current chart? (stays after reload)" onclick="saveToLocalStorage()">
-        <img src="save.png" alt="save" />
+        <img src="system/images/save.png" alt="save" />
       </button>
-      <button title="export your chart?" onclick="exportJSON()"><img src="export.png"/></button>
+      <button title="export your chart?" onclick="exportJSON()"><img src="system/images/export.png"/></button>
     </div>
 
     <audio id="audio"></audio>
@@ -327,6 +327,6 @@
     if (typeof drawChart === 'function') drawChart();
   }
 </script>
-<script src="../system/scriptish.js"></script>
+<script src="system/js/scriptish.js"></script>
 </body>
 </html>
