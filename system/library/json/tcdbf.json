@@ -1,0 +1,68 @@
+{
+  "version": "1.0.0",
+  "offsets": [0, 0],
+  "renderType": "sparrow",
+  "danceEvery": 1,
+  "scale": 1.2,
+  "name": "tcdbf",
+  "flipX": false,
+  "cameraOffsets": [10, 300],
+  "isPixel": false,
+  "singTime": 4,
+  "startingAnimation": "idle",
+  "assetPath": "tcd/tcdbf/tcdbf",
+  "healthIcon": {
+    "isPixel": false,
+    "offsets": [0, 0],
+    "scale": 1,
+    "id": "tcdbf",
+    "flipX": false
+  },
+  "animations": [
+    {
+      "flipY": false,
+      "offsets": [0, -250],
+      "frameRate": 9,
+      "prefix": "IDLE",
+      "flipX": true,
+      "name": "idle",
+      "looped": true
+    },
+    {
+      "flipY": false,
+      "offsets": [0, -250],
+      "frameRate": 12,
+      "prefix": "LEFT",
+      "flipX": true,
+      "name": "singLEFT",
+      "looped": false
+    },
+    {
+      "flipY": false,
+      "offsets": [0, -250],
+      "frameRate": 12,
+      "prefix": "DOWN",
+      "flipX": true,
+      "name": "singDOWN",
+      "looped": false
+    },
+    {
+      "flipY": false,
+      "offsets": [0, -250],
+      "frameRate": 12,
+      "prefix": "UP",
+      "flipX": true,
+      "name": "singUP",
+      "looped": false
+    },
+    {
+      "flipY": false,
+      "offsets": [0, -250],
+      "frameRate": 12,
+      "prefix": "RIGHT",
+      "flipX": true,
+      "name": "singRIGHT",
+      "looped": false
+    }
+  ]
+}
