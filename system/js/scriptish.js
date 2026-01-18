@@ -14,6 +14,7 @@ const ARROW_SIZE = 40;
 const ARROW_HALF = ARROW_SIZE / 2;
 const HOLD_WIDTH = 20;
 const SCROLL_MULT = 0.5;
+const HIT_WINDOW = 40;
 
 // ================== IMAGE PATHS ==================
 const playerPaths = [
@@ -30,6 +31,8 @@ const opponentPaths = [
   "system/arrows/arrow_miss_red.png"
 ];
 
+const hitPath = "system/arrows/hit.png";
+
 // ================== IMAGE LOADING ==================
 const playerImages = playerPaths.map(path => {
   const img = new Image();
@@ -44,6 +47,10 @@ const opponentImages = opponentPaths.map(path => {
   img.onload = drawChart;
   return img;
 });
+
+const hitImage = new Image();
+hitImage.src = hitPath;
+hitImage.onload = drawChart;
 
 // ================== ROTATIONS ==================
 const rotations = [
@@ -100,7 +107,6 @@ function updateTimeLabel() {
   timeLabel.textContent = `Time: ${current} ms - ${total} ms`;
 }
 
-// Custom stringify to keep notes inline
 function stringifyChart(data) {
   const json = JSON.stringify(data, null, 2);
   return json.replace(
@@ -113,7 +119,6 @@ function syncTextarea() {
   jsonInput.value = stringifyChart(chartData);
 }
 
-// Initial render
 syncTextarea();
 
 // ================== AUDIO ==================
@@ -182,10 +187,10 @@ audio.addEventListener("timeupdate", () => {
 // ================== NOTES ==================
 function addNote(lane) {
   const note = [
-    Math.floor(currentTime), // t
-    lane,                    // d
-    0,                       // l
-    []                       // p
+    Math.floor(currentTime),
+    lane,
+    0,
+    []
   ];
 
   chartData.notes.easy.push([...note]);
@@ -213,6 +218,13 @@ function drawChart() {
     ctx.stroke();
   }
 
+  ctx.strokeStyle = "#ff0000";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, centerY);
+  ctx.lineTo(canvas.width, centerY);
+  ctx.stroke();
+
   for (const n of chartData.notes.normal) {
     const t = n[0];
     const d = n[1];
@@ -237,6 +249,7 @@ function drawChart() {
   for (const n of chartData.notes.normal) {
     const t = n[0];
     const d = n[1];
+    const delta = Math.abs(t - currentTime);
 
     const x = d * 110 + 50;
     const y = centerY - (t - currentTime) * SCROLL_MULT;
@@ -244,7 +257,11 @@ function drawChart() {
     if (y < -ARROW_SIZE || y > canvas.height + ARROW_SIZE) continue;
 
     const lane = d % 4;
-    const img = d < 4 ? playerImages[lane] : opponentImages[lane];
+    let img = d < 4 ? playerImages[lane] : opponentImages[lane];
+
+    if (delta <= HIT_WINDOW && hitImage.complete) {
+      img = hitImage;
+    }
 
     if (img.complete && img.naturalWidth) {
       ctx.save();
