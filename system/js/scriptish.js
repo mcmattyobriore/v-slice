@@ -119,7 +119,39 @@ function syncTextarea() {
   jsonInput.value = stringifyChart(chartData);
 }
 
+// textarea → chartData
+jsonInput.addEventListener("input", () => {
+  try {
+    const parsed = JSON.parse(jsonInput.value);
+    if (parsed && parsed.notes) {
+      chartData = parsed;
+      drawChart();
+    }
+  } catch {}
+});
+
 syncTextarea();
+
+// ================== SAVE / RESET ==================
+function saveToLocalStorage() {
+  localStorage.setItem("vslicr5_chart", JSON.stringify(chartData));
+  syncTextarea();
+}
+
+function resetToDefault() {
+  const defaultData = {
+    version: "2.0.0",
+    scrollSpeed: { easy: 1.8, normal: 2, hard: 2.2 },
+    events: [],
+    notes: { easy: [], normal: [], hard: [] },
+    generatedBy: "VslicR5 - FNF v0.8.0"
+  };
+
+  chartData = defaultData;
+  localStorage.removeItem("vslicr5_chart");
+  syncTextarea();
+  drawChart();
+}
 
 // ================== AUDIO ==================
 function unlockAudio() {
@@ -136,7 +168,6 @@ function importAudio(input) {
   if (!file) return;
 
   unlockAudio();
-
   const url = URL.createObjectURL(file);
   audio.pause();
   audio.src = url;
@@ -229,7 +260,6 @@ function drawChart() {
     const t = n[0];
     const d = n[1];
     const l = n[2];
-
     if (l <= 0) continue;
 
     const x = d * 110 + 50;
