@@ -313,6 +313,15 @@
     }
   }
 
+  // Keep notes inline when stringifying
+  function stringifyChart(data) {
+    const json = JSON.stringify(data, null, 2);
+    return json.replace(
+      /\[\s*(-?\d+),\s*(-?\d+),\s*(-?\d+),\s*(\[\])\s*\]/g,
+      "[$1, $2, $3, $4]"
+    );
+  }
+
   function resetToDefault() {
     const defaultData = {
       version: "2.0.0",
@@ -327,7 +336,7 @@
     }
 
     document.getElementById('jsonInput').value =
-      JSON.stringify(defaultData, null, 2);
+      stringifyChart(defaultData);
 
     if (typeof drawChart === 'function') drawChart();
   }
