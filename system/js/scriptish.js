@@ -93,8 +93,6 @@ if (savedChart) {
   } catch {}
 }
 
-jsonInput.value = JSON.stringify(chartData, null, 2);
-
 // ================== UTIL ==================
 function updateTimeLabel() {
   const current = Math.floor(currentTime);
@@ -102,9 +100,21 @@ function updateTimeLabel() {
   timeLabel.textContent = `Time: ${current} ms - ${total} ms`;
 }
 
-function syncTextarea() {
-  jsonInput.value = JSON.stringify(chartData, null, 2);
+// Custom stringify to keep notes inline
+function stringifyChart(data) {
+  const json = JSON.stringify(data, null, 2);
+  return json.replace(
+    /\[\s*(-?\d+),\s*(-?\d+),\s*(-?\d+),\s*(\[\])\s*\]/g,
+    "[$1, $2, $3, $4]"
+  );
 }
+
+function syncTextarea() {
+  jsonInput.value = stringifyChart(chartData);
+}
+
+// Initial render
+syncTextarea();
 
 // ================== AUDIO ==================
 function unlockAudio() {
