@@ -6,13 +6,12 @@
 <title>VslicR5 - FNF' Charting tools</title>
 <link rel="shortcut icon" type="image/png" href="system/icons/favicon.png">
 <link rel="stylesheet" href="system/css/stylish.css">
-<!-- Enable standalone (fullscreen) mode on iOS -->
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VslicR5">
 
 <style>
-  /* All CSS moved inline as requested */
   * {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
@@ -38,7 +37,6 @@
     overscroll-behavior: none;
   }
 
-  /* --- DASHBOARD STYLES --- */
   #dashboard-container {
     position: fixed;
     top: 15px;
@@ -57,9 +55,7 @@
     transition: transform 0.2s ease;
   }
 
-  #dashboard-icon:hover {
-    transform: scale(1.1);
-  }
+  #dashboard-icon:hover { transform: scale(1.1); }
 
   #dashboard-menu {
     display: none;
@@ -83,11 +79,7 @@
   }
 
   #dashboard-menu a:last-child { border-bottom: none; }
-
-  #dashboard-menu a:hover {
-    background: #222;
-    color: #fff;
-  }
+  #dashboard-menu a:hover { background: #222; color: #fff; }
 
   .logo-container {
     width: 100%;
@@ -198,24 +190,32 @@
   .opponent-btn { background: rgba(153, 0, 0, 0.2) !important; }
   .player-btn { background: rgba(0, 85, 255, 0.2) !important; }
 
+  #timeScroll {
+    width: 100%;
+  }
+
+  #noteInfo {
+    font-family: monospace;
+    font-size: 12px;
+    color: #0f0;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    padding: 6px;
+    border-radius: 4px;
+  }
+
   @media (max-width: 800px) {
     .main-content { flex-direction: column; }
     textarea { width: 100%; height: 200px; }
-    #dashboard-container { top: 10px; right: 10px; } /* Adjust for mobile */
+    #dashboard-container { top: 10px; right: 10px; }
   }
 </style>
 </head>
 
 <body>
 
-<!-- DASHBOARD COMPONENT -->
 <div id="dashboard-container">
-  <img 
-    src="system/icons/dashboard.png" 
-    id="dashboard-icon" 
-    alt="Dashboard" 
-    onclick="toggleDashboard()"
-  >
+  <img src="system/icons/dashboard.png" id="dashboard-icon" alt="Dashboard" onclick="toggleDashboard()">
   <div id="dashboard-menu">
     <a href="system/pages/ogg/index.html">OGG Converter</a>
     <a href="system/pages/xml/index.html">XML Viewer</a>
@@ -224,12 +224,7 @@
 </div>
 
 <div class="logo-container" id="logoWrapper">
-  <img 
-    src="system/icons/logo.png" 
-    alt="VslicR5 Logo" 
-    title="click me to hide:)" 
-    onclick="this.parentElement.style.display='none'"
-  >
+  <img src="system/icons/logo.png" alt="VslicR5 Logo" onclick="this.parentElement.style.display='none'">
 </div>
 
 <div class="main-content">
@@ -238,18 +233,26 @@
   <div class="right">
     <canvas id="chart" width="900" height="400"></canvas>
 
+    <!-- NEW TIME SCROLL BAR -->
+    <input id="timeScroll" type="range" min="0" max="0" value="0">
+
+    <!-- SELECTED NOTE INFO -->
+    <div id="noteInfo">Selected note: none</div>
+
     <div class="row">
-      <label class="upload-btn" title="import your json charts here!">
-        <img src="system/images/import.png" alt="import JSON" />
-        <input type="file" accept=".json" onchange="importJSON(this)" hidden />
+      <label class="upload-btn">
+        <img src="system/images/import.png">
+        <input type="file" accept=".json" onchange="importJSON(this)" hidden>
       </label>
-      <label class="upload-btn" title="import your ogg files here!">
-        <img src="system/images/music.png" alt="import Audio" />
-        <input type="file" accept=".ogg,.wav,.mp3,audio/*" onchange="importAudio(this)" hidden />
+
+      <label class="upload-btn">
+        <img src="system/images/music.png">
+        <input type="file" accept=".ogg,.wav,.mp3,audio/*" onchange="importAudio(this)" hidden>
       </label>
-      <button onclick="playAudio()" title="play the ogg file"><img src="system/images/play.png"/></button>
-      <button onclick="pauseAudio()" title="pause the ogg file"><img src="system/images/pause.png"/></button>
-      <button onclick="stopAudio()" title="go back to 0ms"><img src="system/images/stop.png"/></button>
+
+      <button onclick="playAudio()"><img src="system/images/play.png"></button>
+      <button onclick="pauseAudio()"><img src="system/images/pause.png"></button>
+      <button onclick="stopAudio()"><img src="system/images/stop.png"></button>
     </div>
 
     <div class="row">
@@ -258,59 +261,24 @@
       <span id="timeLabel">Time: 0 ms - 0 ms</span>
     </div>
 
-    <div class="mobile-grid">
-      <div class="btn-group">
-        <small>OPPONENT (WASD)</small>
-        <div class="pad">
-          <button class="m-btn opponent-btn" onmousedown="addNote(4)">A</button>
-          <button class="m-btn opponent-btn" onmousedown="addNote(5)">S</button>
-          <button class="m-btn opponent-btn" onmousedown="addNote(6)">W</button>
-          <button class="m-btn opponent-btn" onmousedown="addNote(7)">D</button>
-        </div>
-      </div>
-      <div class="btn-group">
-        <small>PLAYER (Arrows)</small>
-        <div class="pad">
-          <button class="m-btn player-btn" onmousedown="addNote(0)"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/button-arrows/leftBIG.png"/></button>
-          <button class="m-btn player-btn" onmousedown="addNote(1)"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/button-arrows/downBIG.png"/></button>
-          <button class="m-btn player-btn" onmousedown="addNote(2)"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/button-arrows/upBIG.png"/></button>
-          <button class="m-btn player-btn" onmousedown="addNote(3)"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/button-arrows/rightBIG.png"/></button>
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <button title="reset ur chart?"
-        onclick="if(confirm('Are you sure you want to reset the chart?')){ resetToDefault(); }"
-        onmouseenter="this.querySelector('img').src='https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_eager.png'"
-        onmouseleave="this.querySelector('img').src='https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_closed.png'">
-        <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_closed.png" alt="Trash"/>
-      </button>
-      <button title="save your current chart? (stays after reload)" onclick="saveToLocalStorage()">
-        <img src="system/images/save.png" alt="save" />
-      </button>
-      <button title="export your chart?" onclick="exportJSON()"><img src="system/images/export.png"/></button>
-      <button title="explore library?" onclick="openLibrary()"><img src="system/images/library.png"/></button>
-    </div>
-
     <audio id="audio"></audio>
   </div>
 </div>
-<script>
-  // Dashboard toggle logic
-  function toggleDashboard() {
-    const menu = document.getElementById('dashboard-menu');
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-  }
 
-  // Close dashboard if clicking outside
-  window.onclick = function(event) {
-    if (!event.target.matches('#dashboard-icon')) {
-      const menu = document.getElementById('dashboard-menu');
-      if (menu.style.display === 'block') menu.style.display = 'none';
-    }
+<script>
+function toggleDashboard() {
+  const menu = document.getElementById('dashboard-menu');
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+window.onclick = function(event) {
+  if (!event.target.matches('#dashboard-icon')) {
+    const menu = document.getElementById('dashboard-menu');
+    if (menu.style.display === 'block') menu.style.display = 'none';
   }
+}
 </script>
+
 <script src="system/js/scriptish.js"></script>
 <script src="system/js/library.js"></script>
 </body>
