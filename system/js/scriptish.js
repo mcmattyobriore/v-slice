@@ -227,6 +227,17 @@ function addNote(lane) {
 }
 
 // ================== NOTE SELECTION ==================
+function highlightNoteInTextarea(note) {
+  const text = jsonInput.value;
+  const str = JSON.stringify(note);
+  const idx = text.indexOf(str);
+  if (idx === -1) return;
+
+  jsonInput.focus();
+  jsonInput.setSelectionRange(idx, idx + str.length);
+  jsonInput.scrollTop = jsonInput.value.substr(0, idx).split("\n").length * 18;
+}
+
 canvas.addEventListener("click", e => {
   const rect = canvas.getBoundingClientRect();
   const mx = e.clientX - rect.left;
@@ -239,23 +250,25 @@ canvas.addEventListener("click", e => {
     if (mx > x - 20 && mx < x + 20 && my > y - 20 && my < y + 20) {
       selectedNote = n;
       noteInfo.textContent = `Selected note: ${n[0]}ms | lane ${n[1]}`;
-      const str = JSON.stringify(n);
-      const idx = jsonInput.value.indexOf(str);
-      if (idx !== -1) {
-        jsonInput.focus();
-        jsonInput.setSelectionRange(idx, idx + str.length);
-      }
+      highlightNoteInTextarea(n);
       drawChart();
       return;
     }
   }
 });
 
+// ================== DELETE NOTE (ALL DIFFICULTIES) ==================
 canvas.addEventListener("dblclick", () => {
   if (!selectedNote) return;
-  for (const d of ["easy", "normal", "hard"]) {
-    chartData.notes[d] = chartData.notes[d].filter(n => n !== selectedNote);
+
+  const [t, d, l] = selectedNote;
+
+  for (const diff of ["easy", "normal", "hard"]) {
+    chartData.notes[diff] = chartData.notes[diff].filter(
+      n => !(n[0] === t && n[1] === d && n[2] === l)
+    );
   }
+
   selectedNote = null;
   noteInfo.textContent = "Selected note: none";
   syncTextarea();
