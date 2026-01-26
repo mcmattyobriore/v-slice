@@ -3,11 +3,14 @@ const canvas = document.getElementById("chart");
 const ctx = canvas.getContext("2d");
 const timeLabel = document.getElementById("timeLabel");
 const audio = document.getElementById("audio");
+const timeScroll = document.getElementById("timeScroll");
+const noteInfo = document.getElementById("noteInfo");
 
 let chartData;
 let currentTime = 0;
 let playing = false;
 let audioUnlocked = false;
+let selectedNote = null;
 
 // ================== CONSTANTS ==================
 const ARROW_SIZE = 40;
@@ -95,9 +98,7 @@ chartData = {
 
 const savedChart = localStorage.getItem("vslicr5_chart");
 if (savedChart) {
-  try {
-    chartData = JSON.parse(savedChart);
-  } catch {}
+  try { chartData = JSON.parse(savedChart); } catch {}
 }
 
 // ================== UTIL ==================
@@ -109,17 +110,13 @@ function updateTimeLabel() {
 
 function stringifyChart(data) {
   const json = JSON.stringify(data, null, 2);
-  return json.replace(
-    /\[\s*(-?\d+),\s*(-?\d+),\s*(-?\d+),\s*(\[\])\s*\]/g,
-    "[$1, $2, $3, $4]"
-  );
+  return json.replace(/\[\s*(-?\d+),\s*(-?\d+),\s*(-?\d+),\s*(\[\])\s*\]/g, "[$1, $2, $3, $4]");
 }
 
 function syncTextarea() {
   jsonInput.value = stringifyChart(chartData);
 }
 
-// textarea → chartData
 jsonInput.addEventListener("input", () => {
   try {
     const parsed = JSON.parse(jsonInput.value);
@@ -139,15 +136,13 @@ function saveToLocalStorage() {
 }
 
 function resetToDefault() {
-  const defaultData = {
+  chartData = {
     version: "2.0.0",
     scrollSpeed: { easy: 1.8, normal: 2, hard: 2.2 },
     events: [],
     notes: { easy: [], normal: [], hard: [] },
     generatedBy: "VslicR5 - FNF v0.8.0"
   };
-
-  chartData = defaultData;
   localStorage.removeItem("vslicr5_chart");
   syncTextarea();
   drawChart();
@@ -175,27 +170,22 @@ function importAudio(input) {
 
   audio.onloadedmetadata = () => {
     currentTime = 0;
+    timeScroll.max = Math.floor(audio.duration * 1000);
+    timeScroll.value = 0;
     updateTimeLabel();
     drawChart();
   };
 }
 
-function playAudio() {
-  unlockAudio();
-  audio.play();
-  playing = true;
-}
-
-function pauseAudio() {
-  audio.pause();
-  playing = false;
-}
+function playAudio() { unlockAudio(); audio.play(); playing = true; }
+function pauseAudio() { audio.pause(); playing = false; }
 
 function stopAudio() {
   audio.pause();
   audio.currentTime = 0;
   currentTime = 0;
   playing = false;
+  timeScroll.value = 0;
   updateTimeLabel();
   drawChart();
 }
@@ -204,6 +194,7 @@ function seekTime(ms) {
   unlockAudio();
   currentTime = Math.max(0, currentTime + ms);
   audio.currentTime = currentTime / 1000;
+  timeScroll.value = Math.floor(currentTime);
   updateTimeLabel();
   drawChart();
 }
@@ -211,28 +202,65 @@ function seekTime(ms) {
 audio.addEventListener("timeupdate", () => {
   if (!playing) return;
   currentTime = audio.currentTime * 1000;
+  timeScroll.value = Math.floor(currentTime);
+  updateTimeLabel();
+  drawChart();
+});
+
+// ================== SCROLL ==================
+timeScroll.addEventListener("input", () => {
+  currentTime = Number(timeScroll.value);
+  audio.currentTime = currentTime / 1000;
   updateTimeLabel();
   drawChart();
 });
 
 // ================== NOTES ==================
 function addNote(lane) {
-  const note = [
-    Math.floor(currentTime),
-    lane,
-    0,
-    []
-  ];
-
+  const note = [Math.floor(currentTime), lane, 0, []];
   chartData.notes.easy.push([...note]);
   chartData.notes.normal.push([...note]);
   chartData.notes.hard.push([...note]);
-
   chartData.notes.normal.sort((a, b) => a[0] - b[0]);
-
   syncTextarea();
   drawChart();
 }
+
+// ================== NOTE SELECTION ==================
+canvas.addEventListener("click", e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const centerY = canvas.height / 2;
+
+  for (const n of chartData.notes.normal) {
+    const x = n[1] * 110 + 50;
+    const y = centerY - (n[0] - currentTime) * SCROLL_MULT;
+    if (mx > x - 20 && mx < x + 20 && my > y - 20 && my < y + 20) {
+      selectedNote = n;
+      noteInfo.textContent = `Selected note: ${n[0]}ms | lane ${n[1]}`;
+      const str = JSON.stringify(n);
+      const idx = jsonInput.value.indexOf(str);
+      if (idx !== -1) {
+        jsonInput.focus();
+        jsonInput.setSelectionRange(idx, idx + str.length);
+      }
+      drawChart();
+      return;
+    }
+  }
+});
+
+canvas.addEventListener("dblclick", () => {
+  if (!selectedNote) return;
+  for (const d of ["easy", "normal", "hard"]) {
+    chartData.notes[d] = chartData.notes[d].filter(n => n !== selectedNote);
+  }
+  selectedNote = null;
+  noteInfo.textContent = "Selected note: none";
+  syncTextarea();
+  drawChart();
+});
 
 // ================== DRAW ==================
 function drawChart() {
@@ -257,48 +285,43 @@ function drawChart() {
   ctx.stroke();
 
   for (const n of chartData.notes.normal) {
-    const t = n[0];
-    const d = n[1];
-    const l = n[2];
-    if (l <= 0) continue;
-
-    const x = d * 110 + 50;
-    const y = centerY - (t - currentTime) * SCROLL_MULT;
-    const holdHeight = l * SCROLL_MULT;
-    const topY = y - holdHeight;
-
-    if (y < 0 || topY > canvas.height) continue;
-
-    const lane = d % 4;
-    ctx.globalAlpha = 0.6;
-    ctx.fillStyle = laneColors[lane];
-    ctx.fillRect(x - HOLD_WIDTH / 2, topY, HOLD_WIDTH, holdHeight);
-    ctx.globalAlpha = 1;
+    const t = n[0], d = n[1], l = n[2];
+    if (l > 0) {
+      const x = d * 110 + 50;
+      const y = centerY - (t - currentTime) * SCROLL_MULT;
+      const h = l * SCROLL_MULT;
+      const topY = y - h;
+      if (!(y < 0 || topY > canvas.height)) {
+        ctx.globalAlpha = 0.6;
+        ctx.fillStyle = laneColors[d % 4];
+        ctx.fillRect(x - HOLD_WIDTH / 2, topY, HOLD_WIDTH, h);
+        ctx.globalAlpha = 1;
+      }
+    }
   }
 
   for (const n of chartData.notes.normal) {
-    const t = n[0];
-    const d = n[1];
-    const delta = Math.abs(t - currentTime);
-
+    const t = n[0], d = n[1];
     const x = d * 110 + 50;
     const y = centerY - (t - currentTime) * SCROLL_MULT;
-
     if (y < -ARROW_SIZE || y > canvas.height + ARROW_SIZE) continue;
 
     const lane = d % 4;
     let img = d < 4 ? playerImages[lane] : opponentImages[lane];
+    if (Math.abs(t - currentTime) <= HIT_WINDOW && hitImage.complete) img = hitImage;
 
-    if (delta <= HIT_WINDOW && hitImage.complete) {
-      img = hitImage;
-    }
-
-    if (img.complete && img.naturalWidth) {
+    if (img.complete) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rotations[lane]);
       ctx.drawImage(img, -ARROW_HALF, -ARROW_HALF, ARROW_SIZE, ARROW_SIZE);
       ctx.restore();
+    }
+
+    if (n === selectedNote) {
+      ctx.strokeStyle = "#ffff00";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 24, y - 24, 48, 48);
     }
   }
 }
