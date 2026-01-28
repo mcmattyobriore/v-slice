@@ -3,269 +3,628 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>VslicR5 - FNF' Charting tools</title>
-<link rel="shortcut icon" type="image/png" href="system/icons/favicon.png">
-<link rel="stylesheet" href="system/css/stylish.css">
-
+<title>VslicR5 - Friday Night Funkin' Modding tools</title>
+<link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/icons/favicon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VslicR5">
 
 <style>
-  * {
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-    box-sizing: border-box;
-  }
+/* GENERAL RESET */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  box-sizing: border-box;
+}
 
-  textarea, input {
-    -webkit-user-select: text;
-    user-select: text;
-  }
+textarea, input { -webkit-user-select: text; user-select: text; }
 
-  body {
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: #eee;
-    margin: 0;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overscroll-behavior: none;
-  }
+html, body { overscroll-behavior: none; touch-action: manipulation; }
 
-  #dashboard-container {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-  }
+body {
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #eee;
+  margin: 0;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
 
-  #dashboard-icon {
-    width: 35px;
-    height: 35px;
-    image-rendering: pixelated;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-  }
+/* DASHBOARD */
+#dashboard-container {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
 
-  #dashboard-icon:hover { transform: scale(1.1); }
+#dashboard-icon {
+  width: 35px;
+  height: 35px;
+  image-rendering: pixelated;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+#dashboard-icon:hover { transform: scale(1.1); }
 
-  #dashboard-menu {
-    display: none;
-    background: #1e1e1e;
-    border: 1px solid #444;
-    border-radius: 6px;
-    margin-top: 10px;
-    padding: 5px;
-    width: 150px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-  }
+#dashboard-menu {
+  display: none;
+  background: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 6px;
+  margin-top: 10px;
+  padding: 5px;
+  width: 150px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
 
-  #dashboard-menu a {
-    display: block;
-    padding: 10px;
-    color: #0f0;
-    text-decoration: none;
-    font-family: monospace;
-    font-size: 13px;
-    border-bottom: 1px solid #333;
-  }
+#dashboard-menu a {
+  display: block;
+  padding: 10px;
+  color: #0f0;
+  text-decoration: none;
+  font-family: monospace;
+  font-size: 13px;
+  border-bottom: 1px solid #333;
+}
+#dashboard-menu a:last-child { border-bottom: none; }
+#dashboard-menu a:hover { background: #222; color: #fff; }
 
-  #dashboard-menu a:last-child { border-bottom: none; }
-  #dashboard-menu a:hover { background: #222; color: #fff; }
+/* LOGO */
+.logo-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.logo-container img {
+  width: 160px;
+  height: 160px;
+  image-rendering: pixelated;
+  object-fit: contain;
+  cursor: pointer;
+}
 
-  .logo-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-  }
+/* MAIN LAYOUT */
+.main-content { display: flex; width: 100%; gap: 12px; }
+textarea {
+  width: 320px;
+  height: 95vh;
+  background: #1e1e1e;
+  color: #0f0;
+  border: 1px solid #444;
+  padding: 8px;
+  font-family: monospace;
+  font-size: 11px;
+  outline: none;
+}
+.right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  .logo-container img {
-    width: 160px;
-    height: 160px;
-    image-rendering: pixelated;
-    object-fit: contain;
-    cursor: pointer;
-  }
+/* CANVAS */
+canvas {
+  background: #000;
+  border: 1px solid #444;
+  width: 100%;
+  max-width: 900px;
+}
 
-  .main-content {
-    display: flex;
-    width: 100%;
-    gap: 12px;
-  }
+/* BUTTONS */
+button, .upload-btn {
+  width: 44px;
+  height: 44px;
+  background: #222;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+button:active, .upload-btn:active { background: #444; }
+button img, .upload-btn img { object-fit: contain; pointer-events: none; }
+.upload-btn input[type="file"] { display: none; }
 
-  textarea {
-    width: 320px;
-    height: 90vh;
-    background: #1e1e1e;
-    color: #0f0;
-    border: 1px solid #444;
-    padding: 8px;
-    font-family: monospace;
-    font-size: 11px;
-    outline: none;
-  }
+.row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 
-  .right {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+/* MOBILE GRID */
+.mobile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 10px;
+  background: #222;
+  padding: 15px;
+  border-radius: 8px;
+}
+.btn-group { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.pad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.m-btn {
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  background: transparent;
+  border: none;
+}
+.opponent-btn { background: rgba(153,0,0,0.2) !important; }
+.player-btn { background: rgba(0,85,255,0.2) !important; }
+.player-btn img { image-rendering: pixelated; width: 96px; height: 96px; }
 
-  canvas {
-    background: #000;
-    border: 1px solid #444;
-    width: 100%;
-    max-width: 900px;
-  }
+/* NOTE INFO */
+#noteInfo {
+  font-family: monospace;
+  font-size: 12px;
+  color: #0f0;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  padding: 6px;
+  border-radius: 4px;
+}
 
-  .row {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
+/* TIME SCROLL */
+#timeScroll {
+  writing-mode: bt-lr;
+  -webkit-appearance: slider-vertical;
+  appearance: slider-vertical;
+  width: 22px;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  transform: rotate(180deg);
+}
+#timeScroll::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: #0f0;
+  border-radius: 4px;
+}
+#timeScroll::-webkit-slider-runnable-track { background: #333; }
 
-  button, .upload-btn {
-    width: 44px;
-    height: 44px;
-    background: #222;
-    color: #fff;
-    border: 1px solid #555;
-    border-radius: 6px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
+/* RESPONSIVE */
+@media (max-width: 800px) {
+  body { flex-direction: column; }
+  .main-content { flex-direction: column; }
+  textarea { width: 100%; height: 200px; }
+  #dashboard-container { top: 10px; right: 10px; }
+}
+/* === FORCE BUTTON ICONS TO FILL BUTTON === */
+button,
+.upload-btn {
+  padding: 0;
+  overflow: hidden;       /* prevents spill */
+}
 
-  button:active, .upload-btn:active { background: #444; }
+/* image must have size for object-fit to work */
+button > img,
+.upload-btn > img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;    /* use cover if you want crop */
+  pointer-events: none;
+}
+/* === SHOELACE ALERT === */
+#difficulty-alert {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111;
+  border: 1px solid #0f0;
+  color: #0f0;
+  padding: 8px 14px;
+  font-family: monospace;
+  font-size: 12px;
+  border-radius: 6px;
+  z-index: 20000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
 
-  button img, .upload-btn img {
-    object-fit: contain;
-    pointer-events: none;
-  }
+#difficulty-alert.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(4px);
+}
 
-  .mobile-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-top: 10px;
-    background: #222;
-    padding: 15px;
-    border-radius: 8px;
-  }
-
-  .btn-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .pad {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-  }
-
-  .m-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 24px;
-    font-weight: bold;
-    background: transparent;
-    border: none;
-  }
-
-  .opponent-btn { background: rgba(153, 0, 0, 0.2) !important; }
-  .player-btn { background: rgba(0, 85, 255, 0.2) !important; }
-
-  #timeScroll {
-    width: 100%;
-  }
-
-  #noteInfo {
-    font-family: monospace;
-    font-size: 12px;
-    color: #0f0;
-    background: #1a1a1a;
-    border: 1px solid #333;
-    padding: 6px;
-    border-radius: 4px;
-  }
-
-  @media (max-width: 800px) {
-    .main-content { flex-direction: column; }
-    textarea { width: 100%; height: 200px; }
-    #dashboard-container { top: 10px; right: 10px; }
-  }
 </style>
 </head>
 
 <body>
 
+<!-- DASHBOARD -->
 <div id="dashboard-container">
-  <img src="system/icons/dashboard.png" id="dashboard-icon" alt="Dashboard" onclick="toggleDashboard()">
+  <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/icons/dashboard.png" id="dashboard-icon" alt="Dashboard" onclick="toggleDashboard()">
   <div id="dashboard-menu">
-    <a href="system/pages/ogg/index.html">OGG Converter</a>
-    <a href="system/pages/xml/index.html">XML Viewer</a>
-    <a href="system/pages/test/index.html">Test Page</a>
+    <a href="https://mcmattyobriore.github.io./vslicr5/system/pages/ogg/index.html">OGG Converter</a>
+    <a href="https://mcmattyobriore.github.io./vslicr5/system/pages/xml/index.html">XML Viewer</a>
+    <a href="https://mcmattyobriore.github.io./vslicr5/system/pages/test/index.html">Test Page</a>
   </div>
 </div>
 
+<!-- LOGO -->
 <div class="logo-container" id="logoWrapper">
-  <img src="system/icons/logo.png" alt="VslicR5 Logo" onclick="this.parentElement.style.display='none'">
+  <img title="click me to hide :)" src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/icons/logo.png" alt="VslicR5 Logo" onclick="this.parentElement.style.display='none'">
 </div>
 
+<!-- MAIN CONTENT -->
 <div class="main-content">
   <textarea id="jsonInput" spellcheck="false"></textarea>
 
   <div class="right">
-    <canvas id="chart" width="900" height="400"></canvas>
+    <div class="canvas-wrapper">
+      <canvas id="chart" width="900" height="400"></canvas>
+      <input id="timeScroll" type="range" min="0" max="0" value="0">
+    </div>
 
-    <!-- NEW TIME SCROLL BAR -->
-    <input id="timeScroll" type="range" min="0" max="0" value="0">
-
-    <!-- SELECTED NOTE INFO -->
     <div id="noteInfo">Selected note: none</div>
 
     <div class="row">
-      <label class="upload-btn">
-        <img src="system/images/import.png">
+      <label class="upload-btn" title="import your charts here!">
+        <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/import.png">
         <input type="file" accept=".json" onchange="importJSON(this)" hidden>
       </label>
-
-      <label class="upload-btn">
-        <img src="system/images/music.png">
+      <label class="upload-btn" title="import (ogg) or any audio type!!">
+        <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/music.png">
         <input type="file" accept=".ogg,.wav,.mp3,audio/*" onchange="importAudio(this)" hidden>
       </label>
+      <button title="play chart & audio" onclick="playAudio()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/play.png"></button>
+      <button title="pause chart" onclick="pauseAudio()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/pause.png"></button>
+      <button title="return to 0 ms" onclick="stopAudio()"><img src="returntozero.png"></button>
 
-      <button onclick="playAudio()"><img src="system/images/play.png"></button>
-      <button onclick="pauseAudio()"><img src="system/images/pause.png"></button>
-      <button onclick="stopAudio()"><img src="system/images/stop.png"></button>
+<!-- chart difficulties -->
+<button id="btn-easy" title="chart easy" onclick="toggleDifficulty('easy')">
+  <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/easy.png">
+</button>
+
+<button id="btn-normal" title="chart normal" onclick="toggleDifficulty('normal')">
+  <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/normal.png">
+</button>
+
+<button id="btn-hard" title="chart hard" onclick="toggleDifficulty('hard')">
+  <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/hard.png">
+</button>
+
+<canvas id="audioViz" width="900" height="160"></canvas>
+
     </div>
 
     <div class="row">
-      <button onclick="seekTime(-100)">-100ms</button>
-      <button onclick="seekTime(100)">+100ms</button>
+      <button onclick="seekTime(-100)" title="subtract 100 ms">-100ms</button>
+      <button onclick="seekTime(100)"title="add 100 ms">+100ms</button>
       <span id="timeLabel">Time: 0 ms - 0 ms</span>
+    </div>
+
+    <!-- MOBILE GRID: OPPONENT & PLAYER -->
+    <div class="mobile-grid">
+      <div class="btn-group">
+        <small>OPPONENT (WASD)</small>
+        <div class="pad">
+          <button class="m-btn opponent-btn" onmousedown="addNote(4)">A</button>
+          <button class="m-btn opponent-btn" onmousedown="addNote(5)">S</button>
+          <button class="m-btn opponent-btn" onmousedown="addNote(6)">W</button>
+          <button class="m-btn opponent-btn" onmousedown="addNote(7)">D</button>
+        </div>
+      </div>
+      <div class="btn-group">
+        <small>PLAYER (Arrows)</small>
+        <div class="pad">
+          <button class="m-btn player-btn" onmousedown="addNote(0)">
+            <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/button-arrows/leftBIG.png">
+          </button>
+          <button class="m-btn player-btn" onmousedown="addNote(1)">
+            <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/button-arrows/downBIG.png">
+          </button>
+          <button class="m-btn player-btn" onmousedown="addNote(2)">
+            <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/button-arrows/upBIG.png">
+          </button>
+          <button class="m-btn player-btn" onmousedown="addNote(3)">
+            <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/button-arrows/rightBIG.png">
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTROL BUTTONS -->
+    <div class="row">
+      <button title="reset ur chart?" onclick="if(confirm('Are you sure you want to reset the chart?')){ resetToDefault(); }"
+        onmouseenter="this.querySelector('img').src='https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_eager.png'"
+        onmouseleave="this.querySelector('img').src='https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_closed.png'">
+        <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_closed.png" alt="Trash"/>
+      </button>
+      <button title="save your current chart? (stays after reload)" onclick="saveChart()">
+
+        <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/save.png" alt="save" />
+      </button>
+      <button title="export your chart?" onclick="exportJSON()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/export.png"/></button>
+      <button title="explore library?" onclick="openLibrary()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/library.png"/></button>
+      <button id="expNColTxtarea" title="click here to expand or close the textarea" onclick="expandNCollapseTextarea()"><img src="collapse.png"/></button>
     </div>
 
     <audio id="audio"></audio>
   </div>
 </div>
-
+<!-- library -->
 <script>
+/* ================================
+   LIBRARY WIDGET / MODAL (UPGRADED)
+   Fixed square sizing + placeholders
+   Works with openLibrary()
+================================ */
+
+(function () {
+
+  /* -------- LIBRARY DATA -------- */
+  const LIBRARY_ITEMS = [
+    {
+      name: "bf.png",
+      type: "image",
+      content: null
+    },
+    {
+      name: "op.png",
+      type: "image",
+      content: null
+    },
+    {
+      name: "random-chart.json",
+      type: "text",
+      content: null
+    },
+    {
+      name: "Example Text",
+      type: "text",
+      content: "This is a preview of some text.\nYou can put chart data, notes, or descriptions here."
+    }
+  ];
+
+  /* -------- CREATE MODAL -------- */
+  const modal = document.createElement("div");
+  modal.id = "library-modal";
+  modal.innerHTML = `
+    <div id="library-backdrop"></div>
+    <div id="library-window">
+      <div id="library-header">
+        <span>Library</span>
+        <button id="library-close">✕</button>
+      </div>
+
+      <div id="library-body">
+        <div id="library-grid"></div>
+        <div id="library-preview">
+          <div id="library-preview-inner">
+            <small>Select an item to preview</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  /* -------- STYLES -------- */
+  const style = document.createElement("style");
+  style.textContent = `
+    #library-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: none;
+      font-family: monospace;
+    }
+
+    #library-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+    }
+
+    #library-window {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      max-width: 900px;
+      height: 70%;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #library-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: #222;
+      border-bottom: 1px solid #333;
+      color: #0f0;
+    }
+
+    #library-header button {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    #library-body {
+      flex: 1;
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    /* --- FIXED GRID --- */
+    #library-grid {
+      width: 40%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      overflow-y: auto;
+      align-content: flex-start;
+    }
+
+    .library-item {
+      width: 100px;
+      height: 120px;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 6px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .library-item:hover {
+      background: #333;
+    }
+
+    /* --- TRUE SQUARE --- */
+    .library-thumb {
+      width: 88px;
+      height: 88px;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-size: 10px;
+      overflow: hidden;
+      border-radius: 4px;
+    }
+
+    .library-thumb img {
+      max-width: 100%;
+      max-height: 100%;
+      image-rendering: pixelated;
+    }
+
+    .library-name {
+      margin-top: 4px;
+      font-size: 11px;
+      color: #0f0;
+      text-align: center;
+      word-break: break-word;
+    }
+
+    #library-preview {
+      flex: 1;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      overflow: auto;
+      color: #eee;
+    }
+
+    #library-preview img {
+      max-width: 100%;
+      image-rendering: pixelated;
+    }
+
+    #library-preview pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  `;
+  document.head.appendChild(style);
+
+  /* -------- POPULATE GRID -------- */
+  const grid = modal.querySelector("#library-grid");
+  const preview = modal.querySelector("#library-preview-inner");
+
+  LIBRARY_ITEMS.forEach(item => {
+    const el = document.createElement("div");
+    el.className = "library-item";
+
+    const thumb = document.createElement("div");
+    thumb.className = "library-thumb";
+
+    if (item.type === "image") {
+      if (item.content) {
+        const img = document.createElement("img");
+        img.src = item.content;
+        thumb.appendChild(img);
+      } else {
+        thumb.textContent = "EMPTY IMG";
+      }
+    } else {
+      thumb.textContent = "JSON";
+    }
+
+    const name = document.createElement("div");
+    name.className = "library-name";
+    name.textContent = item.name;
+
+    el.appendChild(thumb);
+    el.appendChild(name);
+
+    el.onclick = () => {
+      if (!item.content) {
+        preview.innerHTML = `<small>Empty asset<br>No preview available.</small>`;
+        return;
+      }
+
+      if (item.type === "image") {
+        preview.innerHTML = `<img src="${item.content}">`;
+      } else {
+        preview.innerHTML = `<pre>${item.content}</pre>`;
+      }
+    };
+
+    grid.appendChild(el);
+  });
+
+  /* -------- OPEN / CLOSE -------- */
+  window.openLibrary = function () {
+    modal.style.display = "block";
+  };
+
+  modal.querySelector("#library-close").onclick = close;
+  modal.querySelector("#library-backdrop").onclick = close;
+
+  function close() {
+    modal.style.display = "none";
+  }
+
+})();
+</script>
+<!-- main logic -->
+<script>
+/* ================================
+   DASHBOARD TOGGLE
+================================ */
 function toggleDashboard() {
   const menu = document.getElementById('dashboard-menu');
   menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
@@ -276,10 +635,169 @@ window.onclick = function(event) {
     const menu = document.getElementById('dashboard-menu');
     if (menu.style.display === 'block') menu.style.display = 'none';
   }
-}
-</script>
+};
 
-<script src="system/js/scriptish.js"></script>
-<script src="system/js/library.js"></script>
+/* ================================
+   MAIN JS & CHART LOGIC
+================================ */
+const jsonInput = document.getElementById("jsonInput");
+const canvas = document.getElementById("chart");
+const ctx = canvas.getContext("2d");
+const timeLabel = document.getElementById("timeLabel");
+const audio = document.getElementById("audio");
+const timeScroll = document.getElementById("timeScroll");
+const noteInfo = document.getElementById("noteInfo");
+
+let chartData;
+let currentTime = 0;
+let playing = false;
+let audioUnlocked = false;
+let selectedNote = null;
+let selectedIndex = -1;
+
+const ARROW_SIZE = 40, ARROW_HALF = 20, HOLD_WIDTH = 20, SCROLL_MULT = 0.5, HIT_WINDOW = 40;
+const playerPaths = [
+  "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_purple.png",
+  "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_blue.png",
+  "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_green.png",
+  "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_red.png"
+];
+const opponentPaths = [
+  "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_miss_purple.png",
+  "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_miss_blue.png",
+  "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_miss_green.png",
+  "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_miss_red.png"
+];
+const hitImage = new Image(); hitImage.src = "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/hit.png";
+const playerImages = playerPaths.map(p=>{ const i=new Image(); i.src=p; return i; });
+const opponentImages = opponentPaths.map(p=>{ const i=new Image(); i.src=p; return i; });
+const rotations = [-Math.PI/2, Math.PI, 0, Math.PI/2];
+const laneColors = ["#C24B99","#00FFFF","#12FA05","#F9393F"];
+
+chartData = { version:"2.0.0", scrollSpeed:{easy:1.8, normal:2, hard:2.2}, events:[], notes:{easy:[],normal:[],hard:[]}, generatedBy:"VslicR5 - FNF v0.8.0" };
+const saved = localStorage.getItem("vslicr5_chart");
+if(saved) try{chartData=JSON.parse(saved);}catch{}
+
+function stringifyChart(d){ return JSON.stringify(d,null,2); }
+function syncTextarea(){ jsonInput.value = stringifyChart(chartData); }
+jsonInput.addEventListener("input",()=>{ try{ const parsed = JSON.parse(jsonInput.value); if(parsed?.notes){ chartData=parsed; drawChart(); } }catch{} });
+function updateTimeLabel(){ const cur=Math.floor(currentTime); const tot=audio.duration?Math.floor(audio.duration*1000):0; timeLabel.textContent=`Time: ${cur} ms - ${tot} ms`; }
+function clampLength(v){ const max=audio.duration?audio.duration*1000:Infinity; return Math.max(0,Math.min(v,max)); }
+function unlockAudio(){ if(audioUnlocked) return; audioUnlocked=true; audio.play().then(()=>{audio.pause();audio.currentTime=0;}).catch(()=>{}); }
+function importAudio(input){ const f=input.files[0]; if(!f) return; unlockAudio(); audio.src=URL.createObjectURL(f); audio.load(); audio.onloadedmetadata=()=>{ timeScroll.max=Math.floor(audio.duration*1000); currentTime=0; updateTimeLabel(); drawChart(); }; }
+function playAudio(){ unlockAudio(); audio.play(); playing=true; }
+function pauseAudio(){ audio.pause(); playing=false; }
+function stopAudio(){ audio.pause(); audio.currentTime=0; currentTime=0; playing=false; timeScroll.value=0; updateTimeLabel(); drawChart(); }
+function seekTime(ms){ unlockAudio(); currentTime=Math.max(0,currentTime+ms); audio.currentTime=currentTime/1000; timeScroll.value=currentTime; updateTimeLabel(); drawChart(); }
+
+audio.addEventListener("timeupdate",()=>{ if(!playing) return; currentTime=audio.currentTime*1000; timeScroll.value=currentTime; updateTimeLabel(); drawChart(); });
+timeScroll.addEventListener("input",()=>{ currentTime=Number(timeScroll.value); audio.currentTime=currentTime/1000; updateTimeLabel(); drawChart(); });
+
+/* --- ADD NOTE --- */
+function addNote(lane){
+  const n=[Math.floor(currentTime),lane,0,[]];
+  for(const d of ["easy","normal","hard"]) chartData.notes[d].push([...n]);
+  chartData.notes.normal.sort((a,b)=>a[0]-b[0]);
+  syncTextarea();
+  drawChart();
+}
+
+/* --- KEY HANDLING --- */
+window.addEventListener("keydown",e=>{
+  if(document.activeElement===jsonInput) return;
+  const k=e.key.toLowerCase();
+  if(k==="arrowleft") addNote(0);
+  else if(k==="arrowdown") addNote(1);
+  else if(k==="arrowup") addNote(2);
+  else if(k==="arrowright") addNote(3);
+  else if(k==="a") addNote(4);
+  else if(k==="s") addNote(5);
+  else if(k==="w") addNote(6);
+  else if(k==="d") addNote(7);
+  else if(k===" "){ e.preventDefault(); playing?pauseAudio():playAudio(); }
+});
+
+/* --- CANVAS CLICK / SELECT NOTE --- */
+canvas.addEventListener("click",e=>{
+  const r=canvas.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top, cy=canvas.height/2;
+  selectedNote=null; selectedIndex=-1;
+  chartData.notes.normal.forEach((n,i)=>{ const x=n[1]*110+50, y=cy-(n[0]-currentTime)*SCROLL_MULT; if(mx>x-20&&mx<x+20&&my>y-20&&my<y+20){ selectedNote=n; selectedIndex=i; } });
+  if(selectedNote){
+    const len=selectedNote[2]||0;
+    noteInfo.innerHTML=`<div>Selected note: <b>${selectedNote[0]}ms</b> | lane <b>${selectedNote[1]}</b></div>
+      <div style="margin-top:4px">Length: <input id="noteLengthInput" type="number" value="${len}" style="width:90px;background:#000;color:#0f0;border:1px solid #333;"> ms</div>`;
+    const input=document.getElementById("noteLengthInput");
+    const commit=()=>{ const v=clampLength(Number(input.value)||0); for(const d of ["easy","normal","hard"]){ if(chartData.notes[d][selectedIndex]) chartData.notes[d][selectedIndex][2]=v;} syncTextarea(); drawChart(); };
+    input.addEventListener("keydown",ev=>{ if(ev.key==="Enter"){ev.preventDefault(); commit(); input.blur();} });
+    input.addEventListener("change",commit);
+  }
+  drawChart();
+});
+canvas.addEventListener("dblclick",()=>{ if(selectedIndex<0) return; for(const d of ["easy","normal","hard"]) chartData.notes[d].splice(selectedIndex,1); selectedIndex=-1; selectedNote=null; noteInfo.textContent="Selected note: none"; syncTextarea(); drawChart(); });
+
+/* --- DRAW CHART --- */
+function drawChart(){
+  ctx.clearRect(0,0,canvas.width,canvas.height); ctx.imageSmoothingEnabled=false;
+  const cy=canvas.height/2;
+  for(let i=0;i<8;i++){ ctx.strokeStyle="#333"; ctx.beginPath(); ctx.moveTo(i*110+50,0); ctx.lineTo(i*110+50,canvas.height); ctx.stroke(); }
+  ctx.strokeStyle="#f00"; ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(canvas.width,cy); ctx.stroke();
+  chartData.notes.normal.forEach(n=>{ if(n[2]>0){ const x=n[1]*110+50, y=cy-(n[0]-currentTime)*SCROLL_MULT, h=n[2]*SCROLL_MULT; ctx.globalAlpha=0.6; ctx.fillStyle=laneColors[n[1]%4]; ctx.fillRect(x-HOLD_WIDTH/2,y-h,HOLD_WIDTH,h); ctx.globalAlpha=1; } });
+  chartData.notes.normal.forEach((n,i)=>{ const x=n[1]*110+50, y=cy-(n[0]-currentTime)*SCROLL_MULT; if(y<-50||y>canvas.height+50) return; const lane=n[1]%4; let img=n[1]<4?playerImages[lane]:opponentImages[lane]; if(Math.abs(n[0]-currentTime)<=HIT_WINDOW) img=hitImage; if(img.complete){ ctx.save(); ctx.translate(x,y); ctx.rotate(rotations[lane]); ctx.drawImage(img,-20,-20,40,40); ctx.restore(); } if(i===selectedIndex){ ctx.strokeStyle="#ff0"; ctx.strokeRect(x-24,y-24,48,48); } });
+}
+syncTextarea(); updateTimeLabel(); drawChart();
+
+/* ================================
+   RESET / DELETE HANDLER
+================================ */
+(function(){ const DEFAULT_TEMPLATE={ version:"2.0.0", scrollSpeed:{easy:1.8,normal:2,hard:2.2}, events:[], notes:{easy:[],normal:[],hard:[]}, generatedBy:"VslicR5 - FNF v0.8.0"}; window.resetToDefault=function(){ chartData=JSON.parse(JSON.stringify(DEFAULT_TEMPLATE)); currentTime=0; selectedNote=null; selectedIndex=-1; playing=false; audio.pause(); audio.currentTime=0; timeScroll.value=0; localStorage.removeItem("vslicr5_chart"); noteInfo.textContent="Selected note: none"; syncTextarea(); updateTimeLabel(); drawChart(); }; })();
+
+/* ================================
+   TEXTAREA EXPAND / COLLAPSE
+================================ */
+function expandNCollapseTextarea(){
+  const btn=document.getElementById("expNColTxtarea"), img=btn.querySelector("img"), textarea=document.getElementById("jsonInput");
+  const isCollapsed=textarea.style.display==="none";
+  if(!isCollapsed){ img.src="expand.png"; textarea.style.display="none"; }
+  else{ img.src="collapse.png"; textarea.style.display="block"; textarea.style.width="320px"; textarea.style.height="95vh"; }
+}
+
+/* ================================
+   DIFFICULTY CHECKBOX SYSTEM
+================================ */
+const DIFF_ICON_CHECKED="https://raw.githubusercontent.com/mcmattyobriore/24songs/main/Untitled90_20260127110321.png";
+const DIFF_ICON_UNCHECKED="https://raw.githubusercontent.com/mcmattyobriore/24songs/main/Untitled90_20260127110314.png";
+let activeDifficulties={easy:true, normal:true, hard:true};
+function selectAllDifficulties(){ activeDifficulties.easy=true; activeDifficulties.normal=true; activeDifficulties.hard=true; updateDifficultyButtons(); syncTextarea(); drawChart(); }
+const alertEl=document.createElement("div"); alertEl.id="difficulty-alert"; alertEl.textContent="Select a difficulty to start charting!"; document.body.appendChild(alertEl);
+let alertTimeout=null;
+function showDifficultyAlert(){ alertEl.classList.add("show"); clearTimeout(alertTimeout); alertTimeout=setTimeout(()=>alertEl.classList.remove("show"),1600); }
+function getActiveDifficulties(){ return Object.keys(activeDifficulties).filter(d=>activeDifficulties[d]); }
+function toggleDifficulty(diff){ activeDifficulties[diff]=!activeDifficulties[diff]; updateDifficultyButtons(); syncTextarea(); drawChart(); }
+function updateDifficultyButtons(){ ["easy","normal","hard"].forEach(diff=>{ const btn=document.getElementById("btn-"+diff); if(!btn) return; const img=btn.querySelector("img"); if(!img) return; img.src=activeDifficulties[diff]?DIFF_ICON_CHECKED:DIFF_ICON_UNCHECKED; }); }
+const _addNoteOriginal=window.addNote; window.addNote=function(lane){ const diffs=getActiveDifficulties(); if(diffs.length===0){ showDifficultyAlert(); return; } const note=[Math.floor(currentTime),lane,0,[]]; diffs.forEach(diff=>{ chartData.notes[diff].push([...note]); chartData.notes[diff].sort((a,b)=>a[0]-b[0]); }); syncTextarea(); drawChart(); }
+const _syncTextareaOriginal=window.syncTextarea; window.syncTextarea=function(){ const filtered=JSON.parse(JSON.stringify(chartData)); ["easy","normal","hard"].forEach(diff=>{ if(!activeDifficulties[diff]) filtered.notes[diff]=[]; }); jsonInput.value=JSON.stringify(filtered,null,2); }
+selectAllDifficulties();
+
+/* ================================
+   AUDIO VISUALIZER
+================================ */
+const vizCanvas=document.getElementById("audioViz"); const vizCtx=vizCanvas.getContext("2d");
+let audioCtx, analyser, sourceNode, freqData, vizActive=false; const BLOCK_COUNT=64, BLOCK_GAP=2;
+function initVisualizer(){ if(audioCtx) return; audioCtx=new (window.AudioContext||window.webkitAudioContext)(); analyser=audioCtx.createAnalyser(); analyser.fftSize=256; freqData=new Uint8Array(analyser.frequencyBinCount); sourceNode=audioCtx.createMediaElementSource(audio); sourceNode.connect(analyser); analyser.connect(audioCtx.destination); }
+function getBlockColor(v){ return v<85?"#ff3333":v<170?"#ffee33":"#33ff33"; }
+function drawVisualizer(){ if(!vizActive) return; requestAnimationFrame(drawVisualizer); analyser.getByteFrequencyData(freqData); vizCtx.clearRect(0,0,vizCanvas.width,vizCanvas.height); const blockWidth=(vizCanvas.width-BLOCK_GAP*BLOCK_COUNT)/BLOCK_COUNT; for(let i=0;i<BLOCK_COUNT;i++){ const value=freqData[i]; const h=(value/255)*vizCanvas.height; vizCtx.fillStyle=getBlockColor(value); vizCtx.fillRect(i*(blockWidth+BLOCK_GAP),vizCanvas.height-h,blockWidth,h); } }
+const _playAudio=window.playAudio; window.playAudio=function(){ initVisualizer(); audioCtx.resume(); vizActive=true; drawVisualizer(); _playAudio(); };
+const _pauseAudio=window.pauseAudio; window.pauseAudio=function(){ vizActive=false; _pauseAudio(); };
+const _stopAudio=window.stopAudio; window.stopAudio=function(){ vizActive=false; vizCtx.clearRect(0,0,vizCanvas.width,vizCanvas.height); _stopAudio(); };
+const _importAudio=window.importAudio; window.importAudio=function(input){ _importAudio(input); setTimeout(()=>{ if(audioCtx) audioCtx.resume(); },100); };
+
+/* ================================
+   INDEXEDDB SAVE SYSTEM
+================================ */
+const DB_NAME="VslicR5_DB", STORE="charts", KEY="main-chart";
+function openDB(){ return new Promise((resolve,reject)=>{ const req=indexedDB.open(DB_NAME,1); req.onupgradeneeded=e=>{ e.target.result.createObjectStore(STORE); }; req.onsuccess=e=>resolve(e.target.result); req.onerror=()=>reject(req.error); }); }
+async function saveChart(){ const db=await openDB(); const tx=db.transaction(STORE,"readwrite"); tx.objectStore(STORE).put(chartData,KEY); console.log("Chart saved to IndexedDB"); }
+async function loadChart(){ const db=await openDB(); const tx=db.transaction(STORE,"readonly"); const req=tx.objectStore(STORE).get(KEY); req.onsuccess=()=>{ if(req.result){ chartData=req.result; syncTextarea(); drawChart(); console.log("Chart loaded from IndexedDB"); } } }
+</script>
 </body>
 </html>
