@@ -100,11 +100,11 @@ body {
 .main-content { display: flex; width: 100%; gap: 12px; }
 textarea {
   width: 320px;
-  height: 925px;
+  height: 900px;
   background: #1e1e1e;
   color: #0f0;
   border: 1px solid #444;
-  margin-top: 5px;
+  margin-top: 4px;
   font-family: monospace;
   font-size: 11px;
   outline: none;
@@ -264,26 +264,268 @@ height:32px;
 height:32px;
 }
 
+.middle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: #222;
+  width:950px;
+}
+
+.left-controls,
+.middle-controls,
+.right-controls {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.control-buttons-container {
+  display: flex;
+  gap: 20px; /* Space between the two groups */
+  align-items: center;
+  flex-wrap: nowrap; /* Prevents wrapping to next line */
+}
+
+.down-btns .row,
+.diff-btns {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.diff-btns {
+  padding-left: 225px;
+  margin-left: 225px;
+}
+.control-buttons-container {
+    background: #222;
+    width: 954px;
+    border-radius:10px;
+    margin-right: -2px;
+    margin-left: -3px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* also centers vertically */
+}
+.v1 {
+width: 100vw;
+height: 910px;
+background: #080708;
+}
+    #quoteWrapper {
+      position: relative;
+      width: 100vw;
+      height: 30px;
+      overflow: hidden;
+      background: #222;
+      color: white;
+      display: flex;
+      align-items: center;
+    }
+
+    #quoteBox {
+      position: absolute;
+      white-space: nowrap;
+      font-weight: bold;
+      background: #222;
+      color: white;
+      transform: translateX(100%);
+      user-select: none;
+      cursor: default;
+      font-size: 1.0em;
+      font-family: monospace;
+    }
+#quoteBox {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.quote-sticker {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  vertical-align: middle;
+  pointer-events: none;
+}
 </style>
 </head>
 
 <body>
+<div class="logo-container" id="logoWrapper">
 
 <!-- DASHBOARD -->
 <div id="dashboard-container">
   <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/icons/dashboard.png" id="dashboard-icon" alt="Dashboard" onclick="toggleDashboard()">
   <div id="dashboard-menu">
     <a href="https://mcmattyobriore.github.io./vslicr5/system/pages/ogg/index.html">OGG Converter</a>
-    <a href="https://mcmattyobriore.github.io./vslicr5/system/pages/xml/index.html">XML Viewer</a>
-    <a href="https://mcmattyobriore.github.io./vslicr5/system/pages/test/index.html">Test Page</a>
   </div>
 </div>
 
 <!-- LOGO -->
-<div class="logo-container" id="logoWrapper">
   <img title="click me to hide :)" src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/Untitled93_20260128131220.png" alt="VslicR5 Logo" onclick="this.parentElement.style.display='none'">
 </div>
 
+<!-- MARQUEE HEADING SHII -->
+  <div id="quoteWrapper">
+    <p id="quoteBox">Loading...</p>
+  </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const wrapper = document.getElementById("quoteWrapper");
+  const box = document.getElementById("quoteBox");
+
+  let quotes = [
+    "click vr5 to hide 0.o",
+    "v-slicr5 for v slice / polymod",
+    "v1 drop!! v1.1 coming VERY SOON! (putting actual things into library!)",
+    "v1.1 gonna add v slice folder structure! and gonna also make a wiki for documentation 👀",
+    "click on a note to edit length, double click to KILL",
+    "prob gonna add cntrl + z next lmao",
+    "CREATED BY YZY MOB",
+    "used in tcd demo (v slice)",
+    "lamebanana:here",
+    "follow the official twitter",
+    "he made a statement.",
+  "WAKE UP V1 DROPPED :kirby/wake::kirby/wake::kirby/wake:",
+  ":miku/joy::miku/joy::miku/joy:",
+  "v1.1 when? :miku/swaying.gif:",
+  "rhap5ody::linux/typing.gif:",
+  "ye apologized?! :gwahh.jpeg::gwahh.jpeg::gwahh.jpeg:",
+  "wait if v1 is here then when is v1.1 coming out? :think.jpg: 👀",
+  "VERSION V1 OUT NOWWWWWW!!! :csm/pochita-dance.gif::csm/pochita-dance.gif::csm/pochita-dance.gif:",
+  ":kanye-gaming.jpeg:",
+  ":miku/swaying.gif: Yeezy Night Funkin' :miku/swaying.gif:",
+  ":nintendo/dance: YNF TCD DEMO FOR V SLICE DROPPING FEB 10TH 2026 :nintendo/dance:",
+  "built for mobile but aint even got a layout for it 😿"
+  ];
+
+  let pos = 0;
+  let lastTime = null;
+
+  const baseSpeed = 120;
+  const slowSpeed = 70;
+  const slowerSpeed = 30;
+
+  let currentSpeed = baseSpeed;
+  let isHoveringBox = false;
+  let isHoveringText = false;
+  let isMouseDown = false;
+
+  /* ==========================================
+     Quote Image Parser
+     Supports:
+     :name:
+     :folder/name:
+     :folder/name.gif:
+     ========================================== */
+  function parseQuoteWithImages(text) {
+    return text.replace(
+      /:([a-zA-Z0-9_\-\/]+(?:\.(png|gif|webp|jpg|jpeg))?):/gi,
+      (match, path, ext) => {
+        // Prevent path traversal
+        if (path.includes("..")) return match;
+
+        // Explicit extension → use as-is
+        if (ext) {
+          return `
+            <img
+              src="https://raw.githubusercontent.com/01110010-00110101/01110010-00110101.github.io/main/system/images/stickers/${path}"
+              class="quote-sticker"
+              alt="${path}"
+              loading="lazy"
+            >
+          `;
+        }
+
+        // No extension → png fallback to gif
+        return `
+          <img
+            src="https://raw.githubusercontent.com/01110010-00110101/01110010-00110101.github.io/main/system/images/stickers/${path}.png"
+            class="quote-sticker"
+            alt="${path}"
+            loading="lazy"
+            onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/01110010-00110101/01110010-00110101.github.io/main/system/images/stickers/${path}.gif';"
+          >
+        `;
+      }
+    );
+  }
+
+  function setQuote() {
+    const quote = quotes[Math.floor(Math.random() * quotes.length)];
+
+    box.innerHTML = parseQuoteWithImages(quote);
+
+    pos = wrapper.offsetWidth;
+    box.style.transform = `translateX(${pos}px)`;
+  }
+
+  function updateSpeed() {
+    if (isMouseDown) currentSpeed = 0;
+    else if (isHoveringText) currentSpeed = slowerSpeed;
+    else if (isHoveringBox) currentSpeed = slowSpeed;
+    else currentSpeed = baseSpeed;
+  }
+
+  function animate(time) {
+    if (lastTime !== null) {
+      const dt = (time - lastTime) / 1000;
+      pos -= currentSpeed * dt;
+      box.style.transform = `translateX(${pos}px)`;
+
+      if (pos + box.offsetWidth < 0) {
+        setQuote();
+      }
+    }
+    lastTime = time;
+    requestAnimationFrame(animate);
+  }
+
+  function start() {
+    setQuote();
+    requestAnimationFrame(animate);
+  }
+
+  wrapper.addEventListener("mouseenter", () => {
+    isHoveringBox = true;
+    updateSpeed();
+  });
+
+  wrapper.addEventListener("mouseleave", () => {
+    isHoveringBox = false;
+    isHoveringText = false;
+    updateSpeed();
+  });
+
+  box.addEventListener("mouseenter", () => {
+    isHoveringText = true;
+    updateSpeed();
+  });
+
+  box.addEventListener("mouseleave", () => {
+    isHoveringText = false;
+    updateSpeed();
+  });
+
+  wrapper.addEventListener("mousedown", () => {
+    isMouseDown = true;
+    updateSpeed();
+  });
+
+  wrapper.addEventListener("mouseup", () => {
+    isMouseDown = false;
+    updateSpeed();
+  });
+
+  start();
+});
+</script>
+
+<div class="v1">
 <!-- MAIN CONTENT -->
 <div class="main-content">
   <textarea id="jsonInput" spellcheck="false"></textarea>
@@ -297,42 +539,27 @@ height:32px;
     <div id="noteInfo">Selected note: none</div>
 
     <div class="row">
-      <label class="upload-btn" title="import your charts here!">
-        <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/import.png">
-        <input type="file" accept=".json" onchange="importJSON(this)" hidden>
-      </label>
-      <label class="upload-btn" title="import (ogg) or any audio type!!">
-        <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/music.png">
-        <input type="file" accept=".ogg,.wav,.mp3,audio/*" onchange="importAudio(this)" hidden>
-      </label>
-      <div class="up-btns">
-      <button title="play chart & audio" onclick="playAudio()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/play.png"></button>
-      <button title="pause chart" onclick="pauseAudio()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/pause.png"></button>
-      <button title="return to 0 ms" onclick="stopAudio()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/returntozero.png"></button>
-     </div>
-<div class="diff-btns">
-<!-- chart difficulties -->
-<button id="btn-easy" title="chart easy" onclick="toggleDifficulty('easy')">
-  <img src="checked.png">
-</button>
 
-<button id="btn-normal" title="chart normal" onclick="toggleDifficulty('normal')">
-  <img src="checked.png">
-</button>
-
-<button id="btn-hard" title="chart hard" onclick="toggleDifficulty('hard')">
-  <img src="checked.png">
-</button>
-</div>
 <canvas id="audioViz" width="900" height="160"></canvas>
 
     </div>
 
-    <div class="row">
-      <button onclick="seekTime(-100)" title="subtract 100 ms">-100ms</button>
-      <button onclick="seekTime(100)"title="add 100 ms">+100ms</button>
-      <span id="timeLabel">Time: 0 ms - 0 ms</span>
-    </div>
+<div class="middle">
+  <div class="left-controls">
+    <button onclick="seekTime(-100)" title="subtract 100 ms">-100ms</button>
+    <button onclick="seekTime(100)" title="add 100 ms">+100ms</button>
+  </div>
+  
+  <div class="middle-controls">
+    <span id="timeLabel">Time: 0 ms - 0 ms</span>
+  </div>
+  
+  <div class="right-controls">
+    <button title="play chart & audio" onclick="playAudio()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/play.png"></button>
+    <button title="pause chart" onclick="pauseAudio()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/pause.png"></button>
+    <button title="return to 0 ms" onclick="stopAudio()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/returntozero.png"></button>
+  </div>
+</div>
 
     <!-- MOBILE GRID: OPPONENT & PLAYER -->
     <div class="mobile-grid">
@@ -364,7 +591,8 @@ height:32px;
       </div>
     </div>
 
-    <!-- CONTROL BUTTONS -->
+<!-- bottom btns -->
+<div class="control-buttons-container">
 <div class="down-btns">
     <div class="row">
       <button title="reset ur chart?" onclick="if(confirm('Are you sure you want to reset the chart?')){ resetToDefault(); }"
@@ -379,10 +607,37 @@ height:32px;
       <button title="export your chart?" onclick="exportJSON()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/export.png"/></button>
       <button title="explore library?" onclick="openLibrary()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/library.png"/></button>
       <button id="expNColTxtarea" title="click here to expand or close the textarea" onclick="expandNCollapseTextarea()"><img src="collapse.png"/></button>
-    </div>
+      </div>
 </div>
+<div class="diff-btns">
+      <label class="upload-btn" title="import your charts here!">
+        <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/import.png">
+        <input type="file" accept=".json" onchange="importJSON(this)" hidden>
+      </label>
+      <label class="upload-btn" title="import (ogg) or any audio type!!">
+        <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/music.png">
+        <input type="file" accept=".ogg,.wav,.mp3,audio/*" onchange="importAudio(this)" hidden>
+      </label>
+<!-- chart difficulties -->
+       <button id="btn-easy" title="chart easy" onclick="toggleDifficulty('easy')">
+        <img src="checked.png">
+       </button>
+
+       <button id="btn-normal" title="chart normal" onclick="toggleDifficulty('normal')">
+        <img src="checked.png">
+       </button>
+
+       <button id="btn-hard" title="chart hard" onclick="toggleDifficulty('hard')">
+       <img src="checked.png">
+      </button>
+     </div>
+</div>
+<!-- bottom btns end -->
+
     <audio id="audio"></audio>
   </div>
+</div>
+
 </div>
 <!-- library -->
 <script>
@@ -1209,22 +1464,36 @@ drawChart();
 })();
 
 /* ================================
-   TEXTAREA EXPAND / COLLAPSE
+   TEXTAREA EXPAND / COLLAPSE WITH CENTERING
 ================================ */
 function expandNCollapseTextarea() {
   const btn = document.getElementById("expNColTxtarea");
   const img = btn.querySelector("img");
   const textarea = document.getElementById("jsonInput");
+  const v1Container = document.querySelector(".v1");
   const isCollapsed = textarea.style.display === "none";
   
   if (!isCollapsed) {
+    // COLLAPSE
     img.src = "expand.png";
     textarea.style.display = "none";
+    
+    // Center the v1 container horizontally on full screen
+    v1Container.style.justifyContent = "center";
+    v1Container.style.alignItems = "center";
+    v1Container.style.width = "72vw";
   } else {
+    // EXPAND
     img.src = "collapse.png";
     textarea.style.display = "block";
     textarea.style.width = "320px";
-    textarea.style.height = "95vh";
+    textarea.style.height = "900px";
+    
+    // Reset to original layout
+    v1Container.style.display = "";
+    v1Container.style.justifyContent = "";
+    v1Container.style.alignItems = "";
+    v1Container.style.width = "";
   }
 }
 
