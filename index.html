@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>VslicR5 - Friday Night Funkin' Modding tools</title>
-<link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/icons/favicon.png">
+<link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/Untitled93_20260128131220.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VslicR5">
@@ -84,6 +84,7 @@ body {
 .logo-container {
   width: 100%;
   display: flex;
+  image-rendering: auto;
   justify-content: center;
   margin-bottom: 20px;
 }
@@ -99,11 +100,11 @@ body {
 .main-content { display: flex; width: 100%; gap: 12px; }
 textarea {
   width: 320px;
-  height: 95vh;
+  height: 925px;
   background: #1e1e1e;
   color: #0f0;
   border: 1px solid #444;
-  padding: 8px;
+  margin-top: 5px;
   font-family: monospace;
   font-size: 11px;
   outline: none;
@@ -120,7 +121,7 @@ canvas {
   background: #000;
   border: 1px solid #444;
   width: 100%;
-  max-width: 900px;
+  max-width: 950px;
 }
 
 /* BUTTONS */
@@ -152,6 +153,7 @@ button img, .upload-btn img { object-fit: contain; pointer-events: none; }
   background: #222;
   padding: 15px;
   border-radius: 8px;
+  width:950px;
 }
 .btn-group { display: flex; flex-direction: column; align-items: center; gap: 5px; }
 .pad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -180,6 +182,7 @@ button img, .upload-btn img { object-fit: contain; pointer-events: none; }
   border: 1px solid #333;
   padding: 6px;
   border-radius: 4px;
+  width:950px;
 }
 
 /* TIME SCROLL */
@@ -250,6 +253,16 @@ button > img,
   opacity: 1;
   transform: translateX(-50%) translateY(4px);
 }
+.up-btns button img {
+  image-rendering: pixelated;
+ width:32px;
+height:32px;
+}
+.down-btns button img {
+  image-rendering: pixelated;
+ width:32px;
+height:32px;
+}
 
 </style>
 </head>
@@ -268,7 +281,7 @@ button > img,
 
 <!-- LOGO -->
 <div class="logo-container" id="logoWrapper">
-  <img title="click me to hide :)" src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/icons/logo.png" alt="VslicR5 Logo" onclick="this.parentElement.style.display='none'">
+  <img title="click me to hide :)" src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/Untitled93_20260128131220.png" alt="VslicR5 Logo" onclick="this.parentElement.style.display='none'">
 </div>
 
 <!-- MAIN CONTENT -->
@@ -292,23 +305,25 @@ button > img,
         <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/music.png">
         <input type="file" accept=".ogg,.wav,.mp3,audio/*" onchange="importAudio(this)" hidden>
       </label>
+      <div class="up-btns">
       <button title="play chart & audio" onclick="playAudio()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/play.png"></button>
       <button title="pause chart" onclick="pauseAudio()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/pause.png"></button>
-      <button title="return to 0 ms" onclick="stopAudio()"><img src="returntozero.png"></button>
-
+      <button title="return to 0 ms" onclick="stopAudio()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/returntozero.png"></button>
+     </div>
+<div class="diff-btns">
 <!-- chart difficulties -->
 <button id="btn-easy" title="chart easy" onclick="toggleDifficulty('easy')">
-  <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/easy.png">
+  <img src="checked.png">
 </button>
 
 <button id="btn-normal" title="chart normal" onclick="toggleDifficulty('normal')">
-  <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/normal.png">
+  <img src="checked.png">
 </button>
 
 <button id="btn-hard" title="chart hard" onclick="toggleDifficulty('hard')">
-  <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/hard.png">
+  <img src="checked.png">
 </button>
-
+</div>
 <canvas id="audioViz" width="900" height="160"></canvas>
 
     </div>
@@ -350,6 +365,7 @@ button > img,
     </div>
 
     <!-- CONTROL BUTTONS -->
+<div class="down-btns">
     <div class="row">
       <button title="reset ur chart?" onclick="if(confirm('Are you sure you want to reset the chart?')){ resetToDefault(); }"
         onmouseenter="this.querySelector('img').src='https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_eager.png'"
@@ -364,7 +380,7 @@ button > img,
       <button title="explore library?" onclick="openLibrary()"><img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/images/library.png"/></button>
       <button id="expNColTxtarea" title="click here to expand or close the textarea" onclick="expandNCollapseTextarea()"><img src="collapse.png"/></button>
     </div>
-
+</div>
     <audio id="audio"></audio>
   </div>
 </div>
@@ -633,13 +649,16 @@ function toggleDashboard() {
 window.onclick = function(event) {
   if (!event.target.matches('#dashboard-icon')) {
     const menu = document.getElementById('dashboard-menu');
-    if (menu.style.display === 'block') menu.style.display = 'none';
+    if (menu.style.display === 'block') {
+      menu.style.display = 'none';
+    }
   }
 };
 
 /* ================================
    MAIN JS & CHART LOGIC
 ================================ */
+// DOM Elements
 const jsonInput = document.getElementById("jsonInput");
 const canvas = document.getElementById("chart");
 const ctx = canvas.getContext("2d");
@@ -648,156 +667,814 @@ const audio = document.getElementById("audio");
 const timeScroll = document.getElementById("timeScroll");
 const noteInfo = document.getElementById("noteInfo");
 
+// State Variables
 let chartData;
 let currentTime = 0;
 let playing = false;
 let audioUnlocked = false;
 let selectedNote = null;
 let selectedIndex = -1;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragStartTime = 0;
+let dragStartLane = 0;
 
-const ARROW_SIZE = 40, ARROW_HALF = 20, HOLD_WIDTH = 20, SCROLL_MULT = 0.5, HIT_WINDOW = 40;
+// Constants
+const ARROW_SIZE = 40;
+const ARROW_HALF = 20;
+const HOLD_WIDTH = 20;
+const SCROLL_MULT = 0.5;
+const HIT_WINDOW = 40;
+const LANE_WIDTH = 110;
+const LANE_OFFSET = 50;
+const LANE_SNAP_THRESHOLD = 35; // Distance to snap to lane
+
 const playerPaths = [
   "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_purple.png",
   "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_blue.png",
   "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_green.png",
   "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_red.png"
 ];
+
 const opponentPaths = [
   "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_miss_purple.png",
   "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_miss_blue.png",
   "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_miss_green.png",
   "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/arrow_miss_red.png"
 ];
-const hitImage = new Image(); hitImage.src = "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/hit.png";
-const playerImages = playerPaths.map(p=>{ const i=new Image(); i.src=p; return i; });
-const opponentImages = opponentPaths.map(p=>{ const i=new Image(); i.src=p; return i; });
+
+const hitImage = new Image();
+hitImage.src = "https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/arrows/hit.png";
+
+const playerImages = playerPaths.map(p => {
+  const i = new Image();
+  i.src = p;
+  return i;
+});
+
+const opponentImages = opponentPaths.map(p => {
+  const i = new Image();
+  i.src = p;
+  return i;
+});
+
 const rotations = [-Math.PI/2, Math.PI, 0, Math.PI/2];
-const laneColors = ["#C24B99","#00FFFF","#12FA05","#F9393F"];
+const laneColors = ["#C24B99", "#00FFFF", "#12FA05", "#F9393F"];
 
-chartData = { version:"2.0.0", scrollSpeed:{easy:1.8, normal:2, hard:2.2}, events:[], notes:{easy:[],normal:[],hard:[]}, generatedBy:"VslicR5 - FNF v0.8.0" };
+// Initialize Chart Data
+chartData = {
+  version: "2.0.0",
+  scrollSpeed: { easy: 1.8, normal: 2, hard: 2.2 },
+  events: [],
+  notes: { easy: [], normal: [], hard: [] },
+  generatedBy: "VslicR5 - FNF v0.8.0"
+};
+
 const saved = localStorage.getItem("vslicr5_chart");
-if(saved) try{chartData=JSON.parse(saved);}catch{}
+if (saved) {
+  try {
+    chartData = JSON.parse(saved);
+  } catch(e) {}
+}
 
-function stringifyChart(d){ return JSON.stringify(d,null,2); }
-function syncTextarea(){ jsonInput.value = stringifyChart(chartData); }
-jsonInput.addEventListener("input",()=>{ try{ const parsed = JSON.parse(jsonInput.value); if(parsed?.notes){ chartData=parsed; drawChart(); } }catch{} });
-function updateTimeLabel(){ const cur=Math.floor(currentTime); const tot=audio.duration?Math.floor(audio.duration*1000):0; timeLabel.textContent=`Time: ${cur} ms - ${tot} ms`; }
-function clampLength(v){ const max=audio.duration?audio.duration*1000:Infinity; return Math.max(0,Math.min(v,max)); }
-function unlockAudio(){ if(audioUnlocked) return; audioUnlocked=true; audio.play().then(()=>{audio.pause();audio.currentTime=0;}).catch(()=>{}); }
-function importAudio(input){ const f=input.files[0]; if(!f) return; unlockAudio(); audio.src=URL.createObjectURL(f); audio.load(); audio.onloadedmetadata=()=>{ timeScroll.max=Math.floor(audio.duration*1000); currentTime=0; updateTimeLabel(); drawChart(); }; }
-function playAudio(){ unlockAudio(); audio.play(); playing=true; }
-function pauseAudio(){ audio.pause(); playing=false; }
-function stopAudio(){ audio.pause(); audio.currentTime=0; currentTime=0; playing=false; timeScroll.value=0; updateTimeLabel(); drawChart(); }
-function seekTime(ms){ unlockAudio(); currentTime=Math.max(0,currentTime+ms); audio.currentTime=currentTime/1000; timeScroll.value=currentTime; updateTimeLabel(); drawChart(); }
+/* ================================
+   HELPER FUNCTIONS
+================================ */
+function stringifyChart(d) {
+  return JSON.stringify(d, null, 2);
+}
 
-audio.addEventListener("timeupdate",()=>{ if(!playing) return; currentTime=audio.currentTime*1000; timeScroll.value=currentTime; updateTimeLabel(); drawChart(); });
-timeScroll.addEventListener("input",()=>{ currentTime=Number(timeScroll.value); audio.currentTime=currentTime/1000; updateTimeLabel(); drawChart(); });
+function syncTextarea() {
+  jsonInput.value = stringifyChart(chartData);
+}
 
-/* --- ADD NOTE --- */
-function addNote(lane){
-  const n=[Math.floor(currentTime),lane,0,[]];
-  for(const d of ["easy","normal","hard"]) chartData.notes[d].push([...n]);
-  chartData.notes.normal.sort((a,b)=>a[0]-b[0]);
+function updateTimeLabel() {
+  const cur = Math.floor(currentTime);
+  const tot = audio.duration ? Math.floor(audio.duration * 1000) : 0;
+  timeLabel.textContent = `Time: ${cur} ms - ${tot} ms`;
+}
+
+function clampLength(v) {
+  const max = audio.duration ? audio.duration * 1000 : Infinity;
+  return Math.max(0, Math.min(v, max));
+}
+
+function clampTime(v) {
+  const max = audio.duration ? audio.duration * 1000 : Infinity;
+  return Math.max(0, Math.min(v, max));
+}
+
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  audio.play().then(() => {
+    audio.pause();
+    audio.currentTime = 0;
+  }).catch(() => {});
+}
+
+/* ================================
+   LANE SNAPPING LOGIC
+================================ */
+function getNearestLane(mouseX) {
+  let nearestLane = -1;
+  let minDistance = Infinity;
+  
+  // Check all 8 lanes (0-7)
+  for (let lane = 0; lane < 8; lane++) {
+    const laneX = lane * LANE_WIDTH + LANE_OFFSET;
+    const distance = Math.abs(mouseX - laneX);
+    
+    if (distance < LANE_SNAP_THRESHOLD && distance < minDistance) {
+      minDistance = distance;
+      nearestLane = lane;
+    }
+  }
+  
+  return nearestLane;
+}
+
+/* ================================
+   AUDIO FUNCTIONS
+================================ */
+function importAudio(input) {
+  const f = input.files[0];
+  if (!f) return;
+  
+  unlockAudio();
+  audio.src = URL.createObjectURL(f);
+  audio.load();
+  
+  audio.onloadedmetadata = () => {
+    timeScroll.max = Math.floor(audio.duration * 1000);
+    currentTime = 0;
+    updateTimeLabel();
+    drawChart();
+  };
+}
+
+function playAudio() {
+  unlockAudio();
+  audio.play();
+  playing = true;
+}
+
+function pauseAudio() {
+  audio.pause();
+  playing = false;
+}
+
+function stopAudio() {
+  audio.pause();
+  audio.currentTime = 0;
+  currentTime = 0;
+  playing = false;
+  timeScroll.value = 0;
+  updateTimeLabel();
+  drawChart();
+}
+
+function seekTime(ms) {
+  unlockAudio();
+  currentTime = Math.max(0, currentTime + ms);
+  audio.currentTime = currentTime / 1000;
+  timeScroll.value = currentTime;
+  updateTimeLabel();
+  drawChart();
+}
+
+/* ================================
+   EVENT LISTENERS
+================================ */
+jsonInput.addEventListener("input", () => {
+  try {
+    const parsed = JSON.parse(jsonInput.value);
+    if (parsed?.notes) {
+      chartData = parsed;
+      drawChart();
+    }
+  } catch(e) {}
+});
+
+audio.addEventListener("timeupdate", () => {
+  if (!playing) return;
+  currentTime = audio.currentTime * 1000;
+  timeScroll.value = currentTime;
+  updateTimeLabel();
+  drawChart();
+});
+
+timeScroll.addEventListener("input", () => {
+  currentTime = Number(timeScroll.value);
+  audio.currentTime = currentTime / 1000;
+  updateTimeLabel();
+  drawChart();
+});
+
+/* ================================
+   ADD NOTE
+================================ */
+function addNote(lane) {
+  const n = [Math.floor(currentTime), lane, 0, []];
+  
+  for (const d of ["easy", "normal", "hard"]) {
+    chartData.notes[d].push([...n]);
+  }
+  
+  chartData.notes.normal.sort((a, b) => a[0] - b[0]);
   syncTextarea();
   drawChart();
 }
 
-/* --- KEY HANDLING --- */
-window.addEventListener("keydown",e=>{
-  if(document.activeElement===jsonInput) return;
-  const k=e.key.toLowerCase();
-  if(k==="arrowleft") addNote(0);
-  else if(k==="arrowdown") addNote(1);
-  else if(k==="arrowup") addNote(2);
-  else if(k==="arrowright") addNote(3);
-  else if(k==="a") addNote(4);
-  else if(k==="s") addNote(5);
-  else if(k==="w") addNote(6);
-  else if(k==="d") addNote(7);
-  else if(k===" "){ e.preventDefault(); playing?pauseAudio():playAudio(); }
+/* ================================
+   KEY HANDLING
+================================ */
+window.addEventListener("keydown", e => {
+  if (document.activeElement === jsonInput) return;
+  
+  const k = e.key.toLowerCase();
+  
+  if (k === "arrowleft") addNote(0);
+  else if (k === "arrowdown") addNote(1);
+  else if (k === "arrowup") addNote(2);
+  else if (k === "arrowright") addNote(3);
+  else if (k === "a") addNote(4);
+  else if (k === "s") addNote(5);
+  else if (k === "w") addNote(6);
+  else if (k === "d") addNote(7);
+  else if (k === " ") {
+    e.preventDefault();
+    playing ? pauseAudio() : playAudio();
+  }
 });
 
-/* --- CANVAS CLICK / SELECT NOTE --- */
-canvas.addEventListener("click",e=>{
-  const r=canvas.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top, cy=canvas.height/2;
-  selectedNote=null; selectedIndex=-1;
-  chartData.notes.normal.forEach((n,i)=>{ const x=n[1]*110+50, y=cy-(n[0]-currentTime)*SCROLL_MULT; if(mx>x-20&&mx<x+20&&my>y-20&&my<y+20){ selectedNote=n; selectedIndex=i; } });
-  if(selectedNote){
-    const len=selectedNote[2]||0;
-    noteInfo.innerHTML=`<div>Selected note: <b>${selectedNote[0]}ms</b> | lane <b>${selectedNote[1]}</b></div>
-      <div style="margin-top:4px">Length: <input id="noteLengthInput" type="number" value="${len}" style="width:90px;background:#000;color:#0f0;border:1px solid #333;"> ms</div>`;
-    const input=document.getElementById("noteLengthInput");
-    const commit=()=>{ const v=clampLength(Number(input.value)||0); for(const d of ["easy","normal","hard"]){ if(chartData.notes[d][selectedIndex]) chartData.notes[d][selectedIndex][2]=v;} syncTextarea(); drawChart(); };
-    input.addEventListener("keydown",ev=>{ if(ev.key==="Enter"){ev.preventDefault(); commit(); input.blur();} });
-    input.addEventListener("change",commit);
+/* ================================
+   CANVAS MOUSE INTERACTIONS
+================================ */
+canvas.addEventListener("mousedown", e => {
+  const r = canvas.getBoundingClientRect();
+  const mx = e.clientX - r.left;
+  const my = e.clientY - r.top;
+  const cy = canvas.height / 2;
+  
+  // Check if clicking on a note
+  selectedNote = null;
+  selectedIndex = -1;
+  
+  chartData.notes.normal.forEach((n, i) => {
+    const x = n[1] * LANE_WIDTH + LANE_OFFSET;
+    const y = cy - (n[0] - currentTime) * SCROLL_MULT;
+    
+    if (mx > x - 20 && mx < x + 20 && my > y - 20 && my < y + 20) {
+      selectedNote = n;
+      selectedIndex = i;
+      isDragging = true;
+      dragStartX = mx;
+      dragStartY = my;
+      dragStartTime = n[0];
+      dragStartLane = n[1];
+    }
+  });
+  
+  if (selectedNote) {
+    updateNoteInfo();
+    drawChart();
   }
+});
+
+canvas.addEventListener("mousemove", e => {
+  if (!isDragging || selectedIndex < 0) return;
+  
+  const r = canvas.getBoundingClientRect();
+  const mx = e.clientX - r.left;
+  const my = e.clientY - r.top;
+  const cy = canvas.height / 2;
+  
+  // Calculate time change based on Y movement
+  const deltaY = dragStartY - my;
+  const timeChange = deltaY / SCROLL_MULT;
+  const newTime = clampTime(Math.floor(dragStartTime + timeChange));
+  
+  // Calculate lane change based on X movement
+  const newLane = getNearestLane(mx);
+  
+  // Update note across all difficulties
+  if (newLane >= 0 && newLane <= 7) {
+    for (const d of ["easy", "normal", "hard"]) {
+      if (chartData.notes[d][selectedIndex]) {
+        chartData.notes[d][selectedIndex][0] = newTime;
+        chartData.notes[d][selectedIndex][1] = newLane;
+      }
+    }
+    
+    // Update selected note reference
+    selectedNote[0] = newTime;
+    selectedNote[1] = newLane;
+    
+    updateNoteInfo();
+    syncTextarea();
+    drawChart();
+  }
+});
+
+canvas.addEventListener("mouseup", () => {
+  if (isDragging) {
+    isDragging = false;
+    
+    // Re-sort notes after dragging
+    for (const d of ["easy", "normal", "hard"]) {
+      chartData.notes[d].sort((a, b) => a[0] - b[0]);
+    }
+    
+    // Find new index after sorting
+    const newIndex = chartData.notes.normal.findIndex(n => 
+      n[0] === selectedNote[0] && n[1] === selectedNote[1]
+    );
+    
+    if (newIndex >= 0) {
+      selectedIndex = newIndex;
+    }
+    
+    syncTextarea();
+    drawChart();
+  }
+});
+
+canvas.addEventListener("mouseleave", () => {
+  if (isDragging) {
+    isDragging = false;
+    
+    // Re-sort notes
+    for (const d of ["easy", "normal", "hard"]) {
+      chartData.notes[d].sort((a, b) => a[0] - b[0]);
+    }
+    
+    syncTextarea();
+    drawChart();
+  }
+});
+
+canvas.addEventListener("click", e => {
+  if (isDragging) return; // Don't select if we were dragging
+  
+  const r = canvas.getBoundingClientRect();
+  const mx = e.clientX - r.left;
+  const my = e.clientY - r.top;
+  const cy = canvas.height / 2;
+  
+  selectedNote = null;
+  selectedIndex = -1;
+  
+  chartData.notes.normal.forEach((n, i) => {
+    const x = n[1] * LANE_WIDTH + LANE_OFFSET;
+    const y = cy - (n[0] - currentTime) * SCROLL_MULT;
+    
+    if (mx > x - 20 && mx < x + 20 && my > y - 20 && my < y + 20) {
+      selectedNote = n;
+      selectedIndex = i;
+    }
+  });
+  
+  if (selectedNote) {
+    updateNoteInfo();
+  } else {
+    noteInfo.textContent = "Selected note: none";
+  }
+  
   drawChart();
 });
-canvas.addEventListener("dblclick",()=>{ if(selectedIndex<0) return; for(const d of ["easy","normal","hard"]) chartData.notes[d].splice(selectedIndex,1); selectedIndex=-1; selectedNote=null; noteInfo.textContent="Selected note: none"; syncTextarea(); drawChart(); });
 
-/* --- DRAW CHART --- */
-function drawChart(){
-  ctx.clearRect(0,0,canvas.width,canvas.height); ctx.imageSmoothingEnabled=false;
-  const cy=canvas.height/2;
-  for(let i=0;i<8;i++){ ctx.strokeStyle="#333"; ctx.beginPath(); ctx.moveTo(i*110+50,0); ctx.lineTo(i*110+50,canvas.height); ctx.stroke(); }
-  ctx.strokeStyle="#f00"; ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(canvas.width,cy); ctx.stroke();
-  chartData.notes.normal.forEach(n=>{ if(n[2]>0){ const x=n[1]*110+50, y=cy-(n[0]-currentTime)*SCROLL_MULT, h=n[2]*SCROLL_MULT; ctx.globalAlpha=0.6; ctx.fillStyle=laneColors[n[1]%4]; ctx.fillRect(x-HOLD_WIDTH/2,y-h,HOLD_WIDTH,h); ctx.globalAlpha=1; } });
-  chartData.notes.normal.forEach((n,i)=>{ const x=n[1]*110+50, y=cy-(n[0]-currentTime)*SCROLL_MULT; if(y<-50||y>canvas.height+50) return; const lane=n[1]%4; let img=n[1]<4?playerImages[lane]:opponentImages[lane]; if(Math.abs(n[0]-currentTime)<=HIT_WINDOW) img=hitImage; if(img.complete){ ctx.save(); ctx.translate(x,y); ctx.rotate(rotations[lane]); ctx.drawImage(img,-20,-20,40,40); ctx.restore(); } if(i===selectedIndex){ ctx.strokeStyle="#ff0"; ctx.strokeRect(x-24,y-24,48,48); } });
+canvas.addEventListener("dblclick", () => {
+  if (selectedIndex < 0) return;
+  
+  for (const d of ["easy", "normal", "hard"]) {
+    chartData.notes[d].splice(selectedIndex, 1);
+  }
+  
+  selectedIndex = -1;
+  selectedNote = null;
+  noteInfo.textContent = "Selected note: none";
+  syncTextarea();
+  drawChart();
+});
+
+/* ================================
+   UPDATE NOTE INFO
+================================ */
+function updateNoteInfo() {
+  if (!selectedNote) {
+    noteInfo.textContent = "Selected note: none";
+    return;
+  }
+  
+  const len = selectedNote[2] || 0;
+  const laneType = selectedNote[1] < 4 ? "Player" : "Opponent";
+  const direction = ["Left", "Down", "Up", "Right"][selectedNote[1] % 4];
+  
+  noteInfo.innerHTML = `
+    <div>Selected note: <b>${selectedNote[0]}ms</b> | lane <b>${selectedNote[1]}</b> (${laneType} - ${direction})</div>
+    <div style="margin-top:4px">Length: <input id="noteLengthInput" type="number" value="${len}" style="width:90px;background:#000;color:#0f0;border:1px solid #333;"> ms</div>
+  `;
+  
+  const input = document.getElementById("noteLengthInput");
+  
+  const commit = () => {
+    const v = clampLength(Number(input.value) || 0);
+    
+    for (const d of ["easy", "normal", "hard"]) {
+      if (chartData.notes[d][selectedIndex]) {
+        chartData.notes[d][selectedIndex][2] = v;
+      }
+    }
+    
+    syncTextarea();
+    drawChart();
+  };
+  
+  input.addEventListener("keydown", ev => {
+    if (ev.key === "Enter") {
+      ev.preventDefault();
+      commit();
+      input.blur();
+    }
+  });
+  
+  input.addEventListener("change", commit);
 }
-syncTextarea(); updateTimeLabel(); drawChart();
+
+/* ================================
+   DRAW CHART
+================================ */
+function drawChart() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingEnabled = false;
+  
+  const cy = canvas.height / 2;
+  
+  // Draw lane lines
+  for (let i = 0; i < 8; i++) {
+    ctx.strokeStyle = "#333";
+    ctx.beginPath();
+    ctx.moveTo(i * LANE_WIDTH + LANE_OFFSET, 0);
+    ctx.lineTo(i * LANE_WIDTH + LANE_OFFSET, canvas.height);
+    ctx.stroke();
+  }
+  
+  // Draw center line (hit line)
+  ctx.strokeStyle = "#f00";
+  ctx.beginPath();
+  ctx.moveTo(0, cy);
+  ctx.lineTo(canvas.width, cy);
+  ctx.stroke();
+  
+  // Draw hold notes
+  chartData.notes.normal.forEach(n => {
+    if (n[2] > 0) {
+      const x = n[1] * LANE_WIDTH + LANE_OFFSET;
+      const y = cy - (n[0] - currentTime) * SCROLL_MULT;
+      const h = n[2] * SCROLL_MULT;
+      
+      ctx.globalAlpha = 0.6;
+      ctx.fillStyle = laneColors[n[1] % 4];
+      ctx.fillRect(x - HOLD_WIDTH / 2, y - h, HOLD_WIDTH, h);
+      ctx.globalAlpha = 1;
+    }
+  });
+  
+  // Draw notes
+  chartData.notes.normal.forEach((n, i) => {
+    const x = n[1] * LANE_WIDTH + LANE_OFFSET;
+    const y = cy - (n[0] - currentTime) * SCROLL_MULT;
+    
+    if (y < -50 || y > canvas.height + 50) return;
+    
+    const lane = n[1] % 4;
+    let img = n[1] < 4 ? playerImages[lane] : opponentImages[lane];
+    
+    if (Math.abs(n[0] - currentTime) <= HIT_WINDOW) {
+      img = hitImage;
+    }
+    
+    if (img.complete) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotations[lane]);
+      ctx.drawImage(img, -20, -20, 40, 40);
+      ctx.restore();
+    }
+    
+    // Highlight selected note
+    if (i === selectedIndex) {
+      ctx.strokeStyle = "#ff0";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 24, y - 24, 48, 48);
+      ctx.lineWidth = 1;
+    }
+  });
+}
+
+// Initial setup
+syncTextarea();
+updateTimeLabel();
+drawChart();
 
 /* ================================
    RESET / DELETE HANDLER
 ================================ */
-(function(){ const DEFAULT_TEMPLATE={ version:"2.0.0", scrollSpeed:{easy:1.8,normal:2,hard:2.2}, events:[], notes:{easy:[],normal:[],hard:[]}, generatedBy:"VslicR5 - FNF v0.8.0"}; window.resetToDefault=function(){ chartData=JSON.parse(JSON.stringify(DEFAULT_TEMPLATE)); currentTime=0; selectedNote=null; selectedIndex=-1; playing=false; audio.pause(); audio.currentTime=0; timeScroll.value=0; localStorage.removeItem("vslicr5_chart"); noteInfo.textContent="Selected note: none"; syncTextarea(); updateTimeLabel(); drawChart(); }; })();
+(function() {
+  const DEFAULT_TEMPLATE = {
+    version: "2.0.0",
+    scrollSpeed: { easy: 1.8, normal: 2, hard: 2.2 },
+    events: [],
+    notes: { easy: [], normal: [], hard: [] },
+    generatedBy: "VslicR5 - FNF v0.8.0"
+  };
+  
+  window.resetToDefault = function() {
+    chartData = JSON.parse(JSON.stringify(DEFAULT_TEMPLATE));
+    currentTime = 0;
+    selectedNote = null;
+    selectedIndex = -1;
+    playing = false;
+    audio.pause();
+    audio.currentTime = 0;
+    timeScroll.value = 0;
+    localStorage.removeItem("vslicr5_chart");
+    noteInfo.textContent = "Selected note: none";
+    syncTextarea();
+    updateTimeLabel();
+    drawChart();
+  };
+})();
 
 /* ================================
    TEXTAREA EXPAND / COLLAPSE
 ================================ */
-function expandNCollapseTextarea(){
-  const btn=document.getElementById("expNColTxtarea"), img=btn.querySelector("img"), textarea=document.getElementById("jsonInput");
-  const isCollapsed=textarea.style.display==="none";
-  if(!isCollapsed){ img.src="expand.png"; textarea.style.display="none"; }
-  else{ img.src="collapse.png"; textarea.style.display="block"; textarea.style.width="320px"; textarea.style.height="95vh"; }
+function expandNCollapseTextarea() {
+  const btn = document.getElementById("expNColTxtarea");
+  const img = btn.querySelector("img");
+  const textarea = document.getElementById("jsonInput");
+  const isCollapsed = textarea.style.display === "none";
+  
+  if (!isCollapsed) {
+    img.src = "expand.png";
+    textarea.style.display = "none";
+  } else {
+    img.src = "collapse.png";
+    textarea.style.display = "block";
+    textarea.style.width = "320px";
+    textarea.style.height = "95vh";
+  }
 }
 
 /* ================================
    DIFFICULTY CHECKBOX SYSTEM
 ================================ */
-const DIFF_ICON_CHECKED="https://raw.githubusercontent.com/mcmattyobriore/24songs/main/Untitled90_20260127110321.png";
-const DIFF_ICON_UNCHECKED="https://raw.githubusercontent.com/mcmattyobriore/24songs/main/Untitled90_20260127110314.png";
-let activeDifficulties={easy:true, normal:true, hard:true};
-function selectAllDifficulties(){ activeDifficulties.easy=true; activeDifficulties.normal=true; activeDifficulties.hard=true; updateDifficultyButtons(); syncTextarea(); drawChart(); }
-const alertEl=document.createElement("div"); alertEl.id="difficulty-alert"; alertEl.textContent="Select a difficulty to start charting!"; document.body.appendChild(alertEl);
-let alertTimeout=null;
-function showDifficultyAlert(){ alertEl.classList.add("show"); clearTimeout(alertTimeout); alertTimeout=setTimeout(()=>alertEl.classList.remove("show"),1600); }
-function getActiveDifficulties(){ return Object.keys(activeDifficulties).filter(d=>activeDifficulties[d]); }
-function toggleDifficulty(diff){ activeDifficulties[diff]=!activeDifficulties[diff]; updateDifficultyButtons(); syncTextarea(); drawChart(); }
-function updateDifficultyButtons(){ ["easy","normal","hard"].forEach(diff=>{ const btn=document.getElementById("btn-"+diff); if(!btn) return; const img=btn.querySelector("img"); if(!img) return; img.src=activeDifficulties[diff]?DIFF_ICON_CHECKED:DIFF_ICON_UNCHECKED; }); }
-const _addNoteOriginal=window.addNote; window.addNote=function(lane){ const diffs=getActiveDifficulties(); if(diffs.length===0){ showDifficultyAlert(); return; } const note=[Math.floor(currentTime),lane,0,[]]; diffs.forEach(diff=>{ chartData.notes[diff].push([...note]); chartData.notes[diff].sort((a,b)=>a[0]-b[0]); }); syncTextarea(); drawChart(); }
-const _syncTextareaOriginal=window.syncTextarea; window.syncTextarea=function(){ const filtered=JSON.parse(JSON.stringify(chartData)); ["easy","normal","hard"].forEach(diff=>{ if(!activeDifficulties[diff]) filtered.notes[diff]=[]; }); jsonInput.value=JSON.stringify(filtered,null,2); }
-selectAllDifficulties();
+const DIFF_ICON_CHECKED = "checked.png";
+const DIFF_ICON_UNCHECKED = "unchecked.png";
+
+let activeDifficulties = { easy: true, normal: true, hard: true };
+
+function selectAllDifficulties() {
+  activeDifficulties.easy = true;
+  activeDifficulties.normal = true;
+  activeDifficulties.hard = true;
+  updateDifficultyButtons();
+  syncTextarea();
+  drawChart();
+}
+
+const alertEl = document.createElement("div");
+alertEl.id = "difficulty-alert";
+alertEl.textContent = "Select a difficulty to start charting!";
+document.body.appendChild(alertEl);
+
+let alertTimeout = null;
+
+function showDifficultyAlert() {
+  alertEl.classList.add("show");
+  clearTimeout(alertTimeout);
+  alertTimeout = setTimeout(() => alertEl.classList.remove("show"), 1600);
+}
+
+function getActiveDifficulties() {
+  return Object.keys(activeDifficulties).filter(d => activeDifficulties[d]);
+}
+
+function toggleDifficulty(diff) {
+  activeDifficulties[diff] = !activeDifficulties[diff];
+  updateDifficultyButtons();
+  syncTextarea();
+  drawChart();
+}
+
+function updateDifficultyButtons() {
+  ["easy", "normal", "hard"].forEach(diff => {
+    const btn = document.getElementById("btn-" + diff);
+    if (!btn) return;
+    
+    const img = btn.querySelector("img");
+    if (!img) return;
+    
+    img.src = activeDifficulties[diff] ? DIFF_ICON_CHECKED : DIFF_ICON_UNCHECKED;
+  });
+}
+
+// Override addNote for difficulty system
+const _addNoteOriginal = window.addNote;
+
+window.addNote = function(lane) {
+  const diffs = getActiveDifficulties();
+  
+  if (diffs.length === 0) {
+    showDifficultyAlert();
+    return;
+  }
+  
+  const note = [Math.floor(currentTime), lane, 0, []];
+  
+  diffs.forEach(diff => {
+    chartData.notes[diff].push([...note]);
+    chartData.notes[diff].sort((a, b) => a[0] - b[0]);
+  });
+  
+  syncTextarea();
+  drawChart();
+};
+
+// Override syncTextarea for difficulty filtering
+const _syncTextareaOriginal = window.syncTextarea;
+
+window.syncTextarea = function() {
+  const filtered = JSON.parse(JSON.stringify(chartData));
+  
+  ["easy", "normal", "hard"].forEach(diff => {
+    if (!activeDifficulties[diff]) {
+      filtered.notes[diff] = [];
+    }
+  });
+  
+  function oneLineNotes(key, value) {
+    if (Array.isArray(value) && value.length === 4 && typeof value[0] === "number") {
+      return `[${value.join(", ")}]`;
+    }
+    return value;
+  }
+  
+  jsonInput.value = JSON.stringify(filtered, oneLineNotes, 2)
+    .replace(/"\[(.*?)\]"/g, "[$1]");
+};
 
 /* ================================
    AUDIO VISUALIZER
 ================================ */
-const vizCanvas=document.getElementById("audioViz"); const vizCtx=vizCanvas.getContext("2d");
-let audioCtx, analyser, sourceNode, freqData, vizActive=false; const BLOCK_COUNT=64, BLOCK_GAP=2;
-function initVisualizer(){ if(audioCtx) return; audioCtx=new (window.AudioContext||window.webkitAudioContext)(); analyser=audioCtx.createAnalyser(); analyser.fftSize=256; freqData=new Uint8Array(analyser.frequencyBinCount); sourceNode=audioCtx.createMediaElementSource(audio); sourceNode.connect(analyser); analyser.connect(audioCtx.destination); }
-function getBlockColor(v){ return v<85?"#ff3333":v<170?"#ffee33":"#33ff33"; }
-function drawVisualizer(){ if(!vizActive) return; requestAnimationFrame(drawVisualizer); analyser.getByteFrequencyData(freqData); vizCtx.clearRect(0,0,vizCanvas.width,vizCanvas.height); const blockWidth=(vizCanvas.width-BLOCK_GAP*BLOCK_COUNT)/BLOCK_COUNT; for(let i=0;i<BLOCK_COUNT;i++){ const value=freqData[i]; const h=(value/255)*vizCanvas.height; vizCtx.fillStyle=getBlockColor(value); vizCtx.fillRect(i*(blockWidth+BLOCK_GAP),vizCanvas.height-h,blockWidth,h); } }
-const _playAudio=window.playAudio; window.playAudio=function(){ initVisualizer(); audioCtx.resume(); vizActive=true; drawVisualizer(); _playAudio(); };
-const _pauseAudio=window.pauseAudio; window.pauseAudio=function(){ vizActive=false; _pauseAudio(); };
-const _stopAudio=window.stopAudio; window.stopAudio=function(){ vizActive=false; vizCtx.clearRect(0,0,vizCanvas.width,vizCanvas.height); _stopAudio(); };
-const _importAudio=window.importAudio; window.importAudio=function(input){ _importAudio(input); setTimeout(()=>{ if(audioCtx) audioCtx.resume(); },100); };
+const vizCanvas = document.getElementById("audioViz");
+const vizCtx = vizCanvas.getContext("2d");
+
+let audioCtx, analyser, sourceNode, freqData, vizActive = false;
+const BLOCK_COUNT = 64;
+const BLOCK_GAP = 2;
+
+function initVisualizer() {
+  if (audioCtx) return;
+  
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  freqData = new Uint8Array(analyser.frequencyBinCount);
+  sourceNode = audioCtx.createMediaElementSource(audio);
+  sourceNode.connect(analyser);
+  analyser.connect(audioCtx.destination);
+}
+
+function getBlockColor(v) {
+  return v < 85 ? "#ff3333" : v < 170 ? "#ffee33" : "#33ff33";
+}
+
+function drawVisualizer() {
+  if (!vizActive) return;
+  
+  requestAnimationFrame(drawVisualizer);
+  analyser.getByteFrequencyData(freqData);
+  vizCtx.clearRect(0, 0, vizCanvas.width, vizCanvas.height);
+  
+  const blockWidth = (vizCanvas.width - BLOCK_GAP * BLOCK_COUNT) / BLOCK_COUNT;
+  
+  for (let i = 0; i < BLOCK_COUNT; i++) {
+    const value = freqData[i];
+    const h = (value / 255) * vizCanvas.height;
+    vizCtx.fillStyle = getBlockColor(value);
+    vizCtx.fillRect(i * (blockWidth + BLOCK_GAP), vizCanvas.height - h, blockWidth, h);
+  }
+}
+
+// Override audio functions for visualizer
+const _playAudio = window.playAudio;
+window.playAudio = function() {
+  initVisualizer();
+  audioCtx.resume();
+  vizActive = true;
+  drawVisualizer();
+  _playAudio();
+};
+
+const _pauseAudio = window.pauseAudio;
+window.pauseAudio = function() {
+  vizActive = false;
+  _pauseAudio();
+};
+
+const _stopAudio = window.stopAudio;
+window.stopAudio = function() {
+  vizActive = false;
+  vizCtx.clearRect(0, 0, vizCanvas.width, vizCanvas.height);
+  _stopAudio();
+};
+
+const _importAudio = window.importAudio;
+window.importAudio = function(input) {
+  _importAudio(input);
+  setTimeout(() => {
+    if (audioCtx) audioCtx.resume();
+  }, 100);
+};
 
 /* ================================
    INDEXEDDB SAVE SYSTEM
 ================================ */
-const DB_NAME="VslicR5_DB", STORE="charts", KEY="main-chart";
-function openDB(){ return new Promise((resolve,reject)=>{ const req=indexedDB.open(DB_NAME,1); req.onupgradeneeded=e=>{ e.target.result.createObjectStore(STORE); }; req.onsuccess=e=>resolve(e.target.result); req.onerror=()=>reject(req.error); }); }
-async function saveChart(){ const db=await openDB(); const tx=db.transaction(STORE,"readwrite"); tx.objectStore(STORE).put(chartData,KEY); console.log("Chart saved to IndexedDB"); }
-async function loadChart(){ const db=await openDB(); const tx=db.transaction(STORE,"readonly"); const req=tx.objectStore(STORE).get(KEY); req.onsuccess=()=>{ if(req.result){ chartData=req.result; syncTextarea(); drawChart(); console.log("Chart loaded from IndexedDB"); } } }
+const DB_NAME = "VslicR5_DB";
+const STORE = "charts";
+const KEY = "main-chart";
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    
+    req.onupgradeneeded = e => {
+      e.target.result.createObjectStore(STORE);
+    };
+    
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveChart() {
+  const db = await openDB();
+  const tx = db.transaction(STORE, "readwrite");
+  tx.objectStore(STORE).put(chartData, KEY);
+  console.log("Chart saved to IndexedDB");
+}
+
+async function loadChart() {
+  const db = await openDB();
+  const tx = db.transaction(STORE, "readonly");
+  const req = tx.objectStore(STORE).get(KEY);
+  
+  req.onsuccess = () => {
+    if (req.result) {
+      chartData = req.result;
+      syncTextarea();
+      drawChart();
+      console.log("Chart loaded from IndexedDB");
+    }
+  };
+}
+
+/* ================================
+   EXPORT / IMPORT JSON
+================================ */
+function exportJSON() {
+  const blob = new Blob([stringifyChart(chartData)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'chart.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data?.notes) {
+        chartData = data;
+        syncTextarea();
+        drawChart();
+        console.log("Chart imported successfully");
+      }
+    } catch (err) {
+      console.error("Failed to import chart:", err);
+    }
+  };
+  reader.readAsText(file);
+}
 </script>
 </body>
 </html>
