@@ -350,6 +350,23 @@ background: #080708;
   vertical-align: middle;
   pointer-events: none;
 }
+a {
+  text-decoration: none;
+  color: #fff;
+  font-family: monospace;
+  font-weight: 600;
+  margin: 5px;
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+a:hover {
+  color: red;
+  transform: scale(1.05);
+}
+textarea {
+margin-left:30px;
+}
 </style>
 </head>
 
@@ -639,6 +656,14 @@ document.addEventListener("DOMContentLoaded", () => {
 </div>
 
 </div>
+<footer>
+<a href="https://padlet.com/rhap5ody/devlog-u2ep63atfnqk705n">devlog</a>
+<a href="../system/download/index.html">download versions</a>
+<a href="../system/info/index.html">info</a>
+<a href="../system/socials/index.html">socials</a>
+<a>version: v0.1</a>
+
+</footer>
 <!-- library -->
 <script>
 /* ================================
@@ -989,7 +1014,21 @@ chartData = {
 const saved = localStorage.getItem("vslicr5_chart");
 if (saved) {
   try {
-    chartData = JSON.parse(saved);
+    const parsed = JSON.parse(saved);
+    
+    // Convert object format back to array format if needed
+    ["easy", "normal", "hard"].forEach(diff => {
+      if (parsed.notes && parsed.notes[diff]) {
+        parsed.notes[diff] = parsed.notes[diff].map(note => {
+          if (note.t !== undefined) {
+            return [note.t, note.d, note.l, note.p];
+          }
+          return note;
+        });
+      }
+    });
+    
+    chartData = parsed;
   } catch(e) {}
 }
 
@@ -997,7 +1036,26 @@ if (saved) {
    HELPER FUNCTIONS
 ================================ */
 function stringifyChart(d) {
-  return JSON.stringify(d, null, 2);
+  // Convert array notes to object format
+  const converted = JSON.parse(JSON.stringify(d));
+  
+  ["easy", "normal", "hard"].forEach(diff => {
+    converted.notes[diff] = converted.notes[diff].map(note => ({
+      t: note[0],
+      d: note[1],
+      l: note[2],
+      p: note[3]
+    }));
+  });
+  
+  // Stringify with formatting, then compress note objects to single lines
+  let json = JSON.stringify(converted, null, 2);
+  
+  // Regex to compress note objects to single line
+  json = json.replace(/\{\s+"t":\s+(\d+),\s+"d":\s+(\d+),\s+"l":\s+(\d+),\s+"p":\s+(\[.*?\])\s+\}/gs, 
+    '{"t": $1, "d": $2, "l": $3, "p": $4}');
+  
+  return json;
 }
 
 function syncTextarea() {
@@ -1106,6 +1164,18 @@ jsonInput.addEventListener("input", () => {
   try {
     const parsed = JSON.parse(jsonInput.value);
     if (parsed?.notes) {
+      // Convert object format back to array format
+      ["easy", "normal", "hard"].forEach(diff => {
+        if (parsed.notes[diff]) {
+          parsed.notes[diff] = parsed.notes[diff].map(note => {
+            if (note.t !== undefined) {
+              return [note.t, note.d, note.l, note.p];
+            }
+            return note;
+          });
+        }
+      });
+      
       chartData = parsed;
       drawChart();
     }
@@ -1581,18 +1651,24 @@ window.syncTextarea = function() {
   ["easy", "normal", "hard"].forEach(diff => {
     if (!activeDifficulties[diff]) {
       filtered.notes[diff] = [];
+    } else {
+      // Convert to object format
+      filtered.notes[diff] = filtered.notes[diff].map(note => ({
+        t: note[0],
+        d: note[1],
+        l: note[2],
+        p: note[3]
+      }));
     }
   });
   
-  function oneLineNotes(key, value) {
-    if (Array.isArray(value) && value.length === 4 && typeof value[0] === "number") {
-      return `[${value.join(", ")}]`;
-    }
-    return value;
-  }
+  let json = JSON.stringify(filtered, null, 2);
   
-  jsonInput.value = JSON.stringify(filtered, oneLineNotes, 2)
-    .replace(/"\[(.*?)\]"/g, "[$1]");
+  // Compress note objects to single line
+  json = json.replace(/\{\s+"t":\s+(\d+),\s+"d":\s+(\d+),\s+"l":\s+(\d+),\s+"p":\s+(\[.*?\])\s+\}/gs, 
+    '{"t": $1, "d": $2, "l": $3, "p": $4}');
+  
+  jsonInput.value = json;
 };
 
 /* ================================
@@ -1733,6 +1809,19 @@ function importJSON(input) {
     try {
       const data = JSON.parse(e.target.result);
       if (data?.notes) {
+        // Convert object format back to array format for internal use
+        ["easy", "normal", "hard"].forEach(diff => {
+          if (data.notes[diff]) {
+            data.notes[diff] = data.notes[diff].map(note => {
+              // Handle both formats
+              if (note.t !== undefined) {
+                return [note.t, note.d, note.l, note.p];
+              }
+              return note; // Already in array format
+            });
+          }
+        });
+        
         chartData = data;
         syncTextarea();
         drawChart();
