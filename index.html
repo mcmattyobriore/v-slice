@@ -1237,10 +1237,18 @@ window.addEventListener("keydown", e => {
 /* ================================
    CANVAS MOUSE INTERACTIONS
 ================================ */
-canvas.addEventListener("mousedown", e => {
+function getCanvasMousePos(e) {
   const r = canvas.getBoundingClientRect();
-  const mx = e.clientX - r.left;
-  const my = e.clientY - r.top;
+  const scaleX = canvas.width / r.width;
+  const scaleY = canvas.height / r.height;
+  return {
+    x: (e.clientX - r.left) * scaleX,
+    y: (e.clientY - r.top) * scaleY
+  };
+}
+
+canvas.addEventListener("mousedown", e => {
+  const { x: mx, y: my } = getCanvasMousePos(e);
   const cy = canvas.height / 2;
   
   // Check if clicking on a note
@@ -1271,9 +1279,7 @@ canvas.addEventListener("mousedown", e => {
 canvas.addEventListener("mousemove", e => {
   if (!isDragging || selectedIndex < 0) return;
   
-  const r = canvas.getBoundingClientRect();
-  const mx = e.clientX - r.left;
-  const my = e.clientY - r.top;
+  const { x: mx, y: my } = getCanvasMousePos(e);
   const cy = canvas.height / 2;
   
   // Calculate time change based on Y movement
@@ -1343,9 +1349,7 @@ canvas.addEventListener("mouseleave", () => {
 canvas.addEventListener("click", e => {
   if (isDragging) return; // Don't select if we were dragging
   
-  const r = canvas.getBoundingClientRect();
-  const mx = e.clientX - r.left;
-  const my = e.clientY - r.top;
+  const { x: mx, y: my } = getCanvasMousePos(e);
   const cy = canvas.height / 2;
   
   selectedNote = null;
